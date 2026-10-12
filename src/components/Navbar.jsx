@@ -45,15 +45,23 @@ export default function Navbar({ activePage, currentUser, onOpenProfile }) {
           className={`nav-avatar-btn ${activePage === 'Profile' ? 'active-profile' : ''}`} 
           aria-label="User Profile"
           onClick={onOpenProfile}
-          title={`Operator: ${currentUser?.name || 'Praveen'} (Click for station & logout)`}
-          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px' }}
+          title={currentUser?.name ? `Operator: ${currentUser.name} (${currentUser.role || 'Operator'})` : "Operator Station & Telemetry"}
+          style={{ 
+            cursor: 'pointer', 
+            width: 30, 
+            height: 30, 
+            borderRadius: '50%', 
+            backgroundColor: 'var(--primary-teal)', 
+            color: '#ffffff', 
+            display: 'flex', 
+            alignItems: 'center', 
+            justifyContent: 'center', 
+            border: '2px solid rgba(255,255,255,0.6)', 
+            boxShadow: '0 2px 6px rgba(8,84,100,0.25)', 
+            padding: 0 
+          }}
         >
-          <User size={15} />
-          {currentUser?.name && (
-            <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--navy-dark)' }}>
-              {currentUser.name.split(' ')[0]}
-            </span>
-          )}
+          <User size={16} strokeWidth={2.2} />
         </button>
       </div>
     </header>

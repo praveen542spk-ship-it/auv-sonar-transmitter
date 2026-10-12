@@ -3,9 +3,9 @@ import { Lock, Mail, ShieldCheck, ArrowRight, User, Database, CheckCircle2 } fro
 import { supabase } from '../supabaseClient';
 
 export default function Login({ onLogin }) {
-  const [operatorName, setOperatorName] = useState('Praveen Kumar');
-  const [email, setEmail] = useState('praveen@aquasense.org');
-  const [password, setPassword] = useState('sonarPass2026');
+  const [operatorName, setOperatorName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   const [role, setRole] = useState('Sonar Payload Specialist');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -123,7 +123,7 @@ export default function Login({ onLogin }) {
                 onChange={(e) => setOperatorName(e.target.value)}
                 required
                 style={{ width: '100%', padding: '9px 12px 9px 36px', borderRadius: 8, border: '1px solid var(--border-color)', fontSize: 12 }}
-                placeholder="Praveen Kumar"
+                placeholder="e.g. Praveen Kumar"
               />
               <User size={15} color="var(--slate-muted)" style={{ position: 'absolute', left: 12, top: 11 }} />
             </div>
@@ -141,7 +141,7 @@ export default function Login({ onLogin }) {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 style={{ width: '100%', padding: '9px 12px 9px 36px', borderRadius: 8, border: '1px solid var(--border-color)', fontSize: 12 }}
-                placeholder="operator@aquasense.org"
+                placeholder="e.g. praveen@aquasense.org"
               />
               <Mail size={15} color="var(--slate-muted)" style={{ position: 'absolute', left: 12, top: 11 }} />
             </div>
@@ -159,7 +159,7 @@ export default function Login({ onLogin }) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 style={{ width: '100%', padding: '9px 12px 9px 36px', borderRadius: 8, border: '1px solid var(--border-color)', fontSize: 12 }}
-                placeholder="••••••••••••"
+                placeholder="Enter security passphrase"
               />
               <Lock size={15} color="var(--slate-muted)" style={{ position: 'absolute', left: 12, top: 11 }} />
             </div>
