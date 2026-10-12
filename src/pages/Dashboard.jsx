@@ -416,11 +416,11 @@ export default function Dashboard({ onNavigateToInputs, onNavigateToAnalysis, on
                   const hBase = (results.baselineAvgPowerW / 50) * 135;
                   return (
                     <g>
-                      <rect x="130" y={155 - hAdapt} width="90" height={hAdapt} fill="#085464" rx="4" />
-                      <text x="175" y={155 - hAdapt - 6} fill="#085464" fontSize="10" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+                      <rect x="130" y={155 - hAdapt} width="90" height={hAdapt} fill="#064E3B" rx="4" />
+                      <text x="175" y={155 - hAdapt - 6} fill="#064E3B" fontSize="10" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
                         {results.totalAverageSystemPowerW.toFixed(1)} W
                       </text>
-                      <text x="175" y="172" fill="#085464" fontSize="9" fontFamily="monospace" textAnchor="middle">
+                      <text x="175" y="172" fill="#064E3B" fontSize="9" fontFamily="monospace" textAnchor="middle">
                         Adaptive SDR
                       </text>
 
@@ -446,7 +446,7 @@ export default function Dashboard({ onNavigateToInputs, onNavigateToAnalysis, on
 
                 <polyline
                   fill="none"
-                  stroke="#085464"
+                  stroke="#064E3B"
                   strokeWidth="2.5"
                   points={dischargePoints.map(p => {
                     const x = 50 + (p.hour / config.desiredMissionHours) * 430;
@@ -479,7 +479,7 @@ export default function Dashboard({ onNavigateToInputs, onNavigateToAnalysis, on
 
                       <polyline
                         fill="none"
-                        stroke="#085464"
+                        stroke="#064E3B"
                         strokeWidth="2.5"
                         points={freqPoints.map(p => {
                           const x = 50 + ((p.freq - results.minF) / (results.maxF - results.minF)) * 430;
@@ -524,11 +524,11 @@ export default function Dashboard({ onNavigateToInputs, onNavigateToAnalysis, on
                         Desired Target
                       </text>
 
-                      <rect x="290" y={155 - hAch} width="90" height={hAch} fill="#085464" rx="4" />
-                      <text x="335" y={155 - hAch - 6} fill="#085464" fontSize="10" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+                      <rect x="290" y={155 - hAch} width="90" height={hAch} fill="#064E3B" rx="4" />
+                      <text x="335" y={155 - hAch - 6} fill="#064E3B" fontSize="10" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
                         {achCm.toFixed(1)} cm
                       </text>
-                      <text x="335" y="172" fill="#085464" fontSize="9" fontFamily="monospace" textAnchor="middle">
+                      <text x="335" y="172" fill="#064E3B" fontSize="9" fontFamily="monospace" textAnchor="middle">
                         Achievable Result
                       </text>
                     </g>

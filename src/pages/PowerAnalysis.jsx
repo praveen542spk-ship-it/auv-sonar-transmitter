@@ -375,11 +375,11 @@ export default function PowerAnalysis({ onNavigateToAnalysis, onNavigateToDashbo
                   const y = 155 - h;
                   return (
                     <g>
-                      <rect x="130" y={y} width="90" height={h} fill="#085464" rx="4" />
-                      <text x="175" y={y - 6} fill="#085464" fontSize="10" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+                      <rect x="130" y={y} width="90" height={h} fill="#064E3B" rx="4" />
+                      <text x="175" y={y - 6} fill="#064E3B" fontSize="10" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
                         {results.totalAverageSystemPowerW.toFixed(1)} W
                       </text>
-                      <text x="175" y="172" fill="#085464" fontSize="9" fontFamily="monospace" textAnchor="middle">
+                      <text x="175" y="172" fill="#064E3B" fontSize="9" fontFamily="monospace" textAnchor="middle">
                         Adaptive SDR
                       </text>
                     </g>
@@ -415,7 +415,7 @@ export default function PowerAnalysis({ onNavigateToAnalysis, onNavigateToDashbo
                 {/* Adaptive Discharge Line */}
                 <polyline
                   fill="none"
-                  stroke="#085464"
+                  stroke="#064E3B"
                   strokeWidth="2.5"
                   points={dischargePoints.map(p => {
                     const x = 50 + (p.hour / config.desiredMissionHours) * 430;

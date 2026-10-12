@@ -6,16 +6,16 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=JetBrains+Mono:wght@400;500;600&display=swap');
 
 :root {
-  /* Brand Palette */
-  --primary-teal: #085464;
-  --primary-teal-hover: #06404d;
-  --primary-teal-light: #e0f2fe;
-  --accent-cyan: #0284c7;
-  --accent-cyan-light: #f0f9ff;
-  --accent-cyan-border: #bae6fd;
+  /* Brand Palette - Emerald Ink Theme (#064E3B) */
+  --primary-teal: #064E3B;
+  --primary-teal-hover: #04382a;
+  --primary-teal-light: #ecfdf5;
+  --accent-cyan: #059669;
+  --accent-cyan-light: #f0fdf4;
+  --accent-cyan-border: #a7f3d0;
   
   --mint-green: #10b981;
-  --mint-green-dark: #059669;
+  --mint-green-dark: #047857;
   --mint-green-light: #ecfdf5;
   --mint-green-border: #a7f3d0;
 
@@ -23,19 +23,19 @@
   --amber-light: #fffbeb;
   --amber-border: #fde68a;
 
-  --navy-dark: #0f172a;
-  --slate-dark: #1e293b;
-  --slate-text: #475569;
+  --navy-dark: #0a251e;
+  --slate-dark: #133329;
+  --slate-text: #374151;
   --slate-muted: #64748b;
   --slate-light: #94a3b8;
   --border-color: #e2e8f0;
   --border-light: #f1f5f9;
 
   /* Surfaces & Backgrounds */
-  --bg-page: #f8fafc;
+  --bg-page: #f6faf7;
   --bg-card: #ffffff;
-  --bg-pill: #f1f5f9;
-  --bg-pill-active: #085464;
+  --bg-pill: #e6f4ed;
+  --bg-pill-active: #064E3B;
 
   /* Elevation */
   --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
@@ -1034,10 +1034,10 @@ input:-webkit-autofill:active {
 }
 
 .login-input:focus {
-  border-color: #085464 !important;
-  box-shadow: 0 0 0 3px rgba(8, 84, 100, 0.15) !important;
+  border-color: #064E3B !important;
+  box-shadow: 0 0 0 3px rgba(6, 78, 59, 0.15) !important;
   background-color: #ffffff !important;
-  color: #0f172a !important;
+  color: #0a251e !important;
 }
 
 .login-input::placeholder {
@@ -1052,7 +1052,7 @@ input:-webkit-autofill:active {
   border-radius: 8px;
   border: 1.5px solid #cbd5e1 !important;
   background-color: #ffffff !important;
-  color: #0f172a !important;
+  color: #0a251e !important;
   font-size: 13px;
   font-weight: 500;
   outline: none;
@@ -1065,8 +1065,8 @@ input:-webkit-autofill:active {
 }
 
 .login-select:focus {
-  border-color: #085464 !important;
-  box-shadow: 0 0 0 3px rgba(8, 84, 100, 0.15) !important;
+  border-color: #064E3B !important;
+  box-shadow: 0 0 0 3px rgba(6, 78, 59, 0.15) !important;
 }
 
 /* Remove up/down spinners from number inputs for clean normal typing */

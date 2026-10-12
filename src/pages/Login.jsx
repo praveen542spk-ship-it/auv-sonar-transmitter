@@ -399,7 +399,7 @@ export default function Login({ onLogin }) {
                   className="login-input"
                   placeholder="e.g. Praveen Kumar"
                 />
-                <User size={16} color="#085464" style={{ position: 'absolute', left: 12, top: 12 }} />
+                <User size={16} color="#064E3B" style={{ position: 'absolute', left: 12, top: 12 }} />
               </div>
             </div>
           )}
@@ -418,7 +418,7 @@ export default function Login({ onLogin }) {
                 className="login-input"
                 placeholder={mode === 'login' ? 'Enter registered email' : 'yourname@aquasense.org'}
               />
-              <Mail size={16} color="#085464" style={{ position: 'absolute', left: 12, top: 12 }} />
+              <Mail size={16} color="#064E3B" style={{ position: 'absolute', left: 12, top: 12 }} />
             </div>
           </div>
 
@@ -437,7 +437,7 @@ export default function Login({ onLogin }) {
                 style={{ paddingRight: 40 }}
                 placeholder={mode === 'login' ? 'Enter security passphrase' : 'Create passphrase (min 6 chars)'}
               />
-              <Lock size={16} color="#085464" style={{ position: 'absolute', left: 12, top: 12 }} />
+              <Lock size={16} color="#064E3B" style={{ position: 'absolute', left: 12, top: 12 }} />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}

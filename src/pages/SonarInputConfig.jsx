@@ -831,7 +831,7 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
 
                 <polyline
                   fill="none"
-                  stroke="#085464"
+                  stroke="#064E3B"
                   strokeWidth="2.5"
                   points={chartPoints.map(pt => {
                     const x = 50 + ((pt.freq - results.minF) / (results.maxF - results.minF)) * 430;
