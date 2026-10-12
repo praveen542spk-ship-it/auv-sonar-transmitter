@@ -1,9 +1,14 @@
 import React from 'react';
-import { User, Cpu } from 'lucide-react';
+import { User, Cpu, Activity, Sliders } from 'lucide-react';
+import { useSonar } from '../SonarContext';
 
 export default function Navbar({ activePage, currentUser, onOpenProfile }) {
+  const { inputMode, toggleInputMode } = useSonar();
+
   const getSubsystemTitle = () => {
     switch (activePage) {
+      case 'LiveSDR':
+        return 'Live Environmental Stream & LFM Chirp';
       case 'SonarInputConfig':
         return 'Input & Configuration';
       case 'AdaptiveSonar':
@@ -32,9 +37,35 @@ export default function Navbar({ activePage, currentUser, onOpenProfile }) {
       </div>
 
       <div className="nav-right">
-        <div className="status-pill-blue" title="Real-time Adaptive Feedback Active">
-          <div className="status-pill-blue-dot"></div>
-        </div>
+        {/* Alternative Mode Toggle Button */}
+        <button
+          onClick={toggleInputMode}
+          title={inputMode === 'continuous' ? "Click to switch to Constant User Inputs (Manual Mode)" : "Click to switch to Continuous Changing Inputs (Live Mode)"}
+          style={{
+            background: inputMode === 'continuous' ? '#ecfdf5' : '#fef3c7',
+            border: `1px solid ${inputMode === 'continuous' ? '#a7f3d0' : '#fde68a'}`,
+            color: inputMode === 'continuous' ? '#065f46' : '#92400e',
+            borderRadius: 16,
+            padding: '3px 10px',
+            fontSize: 10,
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            transition: 'all 0.2s ease'
+          }}
+        >
+          <span style={{
+            display: 'inline-block',
+            width: 7,
+            height: 7,
+            borderRadius: '50%',
+            backgroundColor: inputMode === 'continuous' ? '#10b981' : '#f59e0b',
+            boxShadow: inputMode === 'continuous' ? '0 0 6px #10b981' : 'none'
+          }} />
+          {inputMode === 'continuous' ? 'Live Stream' : 'Constant Mode'}
+        </button>
 
         <span className="badge-tag-blue" style={{ fontSize: 9.5, padding: '3px 8px' }}>
           <Cpu size={12} style={{ marginRight: 4 }} />

@@ -1,9 +1,10 @@
 import React from 'react';
-import { Sliders, Activity, BatteryCharging, LayoutDashboard, User } from 'lucide-react';
+import { Radio, Sliders, Activity, BatteryCharging, LayoutDashboard, User } from 'lucide-react';
 
 export default function BottomNav({ activePage, onSelectPage }) {
   const navTabs = [
-    { id: 'SonarInputConfig', label: 'Inputs', icon: Sliders },
+    { id: 'LiveSDR', label: 'Live SDR & Chirp', icon: Radio },
+    { id: 'SonarInputConfig', label: 'Inputs & Config', icon: Sliders },
     { id: 'AdaptiveSonar', label: 'Adaptive Sonar', icon: Activity },
     { id: 'PowerAnalysis', label: 'Power & Battery', icon: BatteryCharging },
     { id: 'Dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -12,7 +13,7 @@ export default function BottomNav({ activePage, onSelectPage }) {
 
   return (
     <div className="aquasense-dock-container">
-      <nav className="dock-tabs-grid" aria-label="Main Dock Navigation" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
+      <nav className="dock-tabs-grid" aria-label="Main Dock Navigation" style={{ gridTemplateColumns: 'repeat(6, 1fr)' }}>
         {navTabs.map((tab) => {
           const Icon = tab.icon;
           const isActive = activePage === tab.id;

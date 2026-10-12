@@ -3,7 +3,17 @@ import { useSonar } from '../SonarContext';
 import { Battery, Zap, AlertTriangle, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function PowerAnalysis({ onNavigateToAnalysis, onNavigateToDashboard }) {
-  const { config, results, hasCalculated, isOutdated } = useSonar();
+  const { 
+    config, 
+    results, 
+    hasCalculated, 
+    isOutdated, 
+    isLiveStreaming, 
+    inputMode, 
+    setModeContinuous, 
+    setModeManualConstant, 
+    toggleInputMode 
+  } = useSonar();
   const [activeChart, setActiveChart] = useState('power'); // 'power' | 'runtime' | 'discharge' | 'mission_energy'
 
   // Generate Mission Discharge Curve (Hours 0 to desiredMissionHours)
@@ -28,6 +38,13 @@ export default function PowerAnalysis({ onNavigateToAnalysis, onNavigateToDashbo
         <div className="page-header-badge-row">
           <span className="badge-tag-blue">● POWER &amp; BATTERY OPTIMIZATION</span>
           <span className="badge-tag-green">MEASURED EFFICIENCY &gt;82% CLASS D</span>
+          <span className="badge-tag-blue" style={{ 
+            background: inputMode === 'continuous' ? '#ecfdf5' : '#fef3c7', 
+            color: inputMode === 'continuous' ? '#064e3b' : '#92400e', 
+            borderColor: inputMode === 'continuous' ? '#a7f3d0' : '#fde68a' 
+          }}>
+            {inputMode === 'continuous' ? '● LIVE CONTINUOUS DYNAMIC TRACKING' : '✋ CONSTANT USER INPUTS (MANUAL)'}
+          </span>
         </div>
         <h1 className="page-title">Low-Power Optimization &amp; Battery Analysis</h1>
         <p className="page-description">
@@ -47,7 +64,7 @@ export default function PowerAnalysis({ onNavigateToAnalysis, onNavigateToDashbo
         </button>
 
         <span style={{ fontSize: 10.5, fontFamily: 'monospace', color: 'var(--slate-muted)' }}>
-          Battery: {config.batteryVoltageV}V × {config.batteryCapacityAh}Ah ({results.nominalBatteryEnergyWh} Wh)
+          Battery: {config.batteryVoltageV}V × {config.batteryCapacityAh}Ah ({results.nominalBatteryEnergyWh} Wh) • Live Endurance: {results.estimatedRuntimeHours} hrs
         </span>
 
         <button 
@@ -60,19 +77,58 @@ export default function PowerAnalysis({ onNavigateToAnalysis, onNavigateToDashbo
         </button>
       </div>
 
-      {isOutdated && (
-        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', padding: '10px 14px', borderRadius: 8, fontSize: 11.5, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <span style={{ fontSize: 14 }}>⚠️</span>
-          <span><strong>Inputs have changed:</strong> Output results reflect previous calculation. Return to Page 1 and click <strong>'Calculate Sonar Performance'</strong> to update.</span>
+      {/* MODE STATUS & ALTERNATIVE SWITCHER BANNER */}
+      <div style={{ 
+        background: inputMode === 'continuous' ? '#ecfdf5' : '#fffbeb', 
+        border: `1.5px solid ${inputMode === 'continuous' ? '#a7f3d0' : '#fde68a'}`, 
+        color: inputMode === 'continuous' ? '#065f46' : '#92400e', 
+        padding: '10px 16px', 
+        borderRadius: 8, 
+        fontSize: 11.5, 
+        display: 'flex', 
+        justifyContent: 'space-between',
+        alignItems: 'center', 
+        flexWrap: 'wrap',
+        gap: 10, 
+        marginBottom: 14 
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ 
+            display: 'inline-block', 
+            width: 8, 
+            height: 8, 
+            borderRadius: '50%', 
+            backgroundColor: inputMode === 'continuous' ? '#10b981' : '#f59e0b', 
+            boxShadow: inputMode === 'continuous' ? '0 0 8px #10b981' : 'none' 
+          }} />
+          {inputMode === 'continuous' ? (
+            <span><strong>Live Continuous Inputs Active:</strong> Target Range: <strong>{config.targetDistanceM}m</strong> • Turbidity: <strong>{config.turbidityNtu} NTU</strong> • Transmit Power: <strong>{results.activeTransmitPowerW} W</strong> • Battery Endurance: <strong>{results.estimatedRuntimeHours} hrs</strong> (Outputs altering in real time).</span>
+          ) : (
+            <span><strong>Constant User Inputs Active:</strong> Continuous ocean inputs stopped. Values held steady at Target <strong>{config.targetDistanceM}m</strong>, Transmit Power <strong>{results.activeTransmitPowerW} W</strong>, Runtime <strong>{results.estimatedRuntimeHours} hrs</strong>.</span>
+          )}
         </div>
-      )}
 
-      {!hasCalculated && (
-        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', color: '#0369a1', padding: '10px 14px', borderRadius: 8, fontSize: 11.5, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <span style={{ fontSize: 14 }}>ℹ️</span>
-          <span><strong>Initial Zero State:</strong> Power analysis has not been calculated yet. Output cards and discharge curves initially show zero values. Return to Page 1 and click <strong>'Calculate Sonar Performance'</strong>.</span>
-        </div>
-      )}
+        {/* Alternative Button */}
+        <button
+          onClick={toggleInputMode}
+          style={{
+            background: inputMode === 'continuous' ? '#064E3B' : '#d97706',
+            color: '#ffffff',
+            border: 'none',
+            borderRadius: 6,
+            padding: '5px 12px',
+            fontSize: 11,
+            fontWeight: 700,
+            cursor: 'pointer',
+            display: 'flex',
+            alignItems: 'center',
+            gap: 5,
+            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
+          }}
+        >
+          {inputMode === 'continuous' ? '✋ Switch to Constant User Inputs' : '🌊 Switch to Continuous Live Inputs'}
+        </button>
+      </div>
 
       {/* WARNINGS BANNER */}
       {hasCalculated && (!results.meetsMissionDuration || !results.isPowerWithinLimit) && (
@@ -365,41 +421,43 @@ export default function PowerAnalysis({ onNavigateToAnalysis, onNavigateToDashbo
             {/* CHART 1: Fixed vs Adaptive Power Bar Chart */}
             {activeChart === 'power' && (
               <g>
-                <text x="42" y="24" fill="#64748b" fontSize="8" fontFamily="monospace" textAnchor="end">50W</text>
-                <text x="42" y="90" fill="#64748b" fontSize="8" fontFamily="monospace" textAnchor="end">25W</text>
-                <text x="42" y="155" fill="#64748b" fontSize="8" fontFamily="monospace" textAnchor="end">0W</text>
-
-                {/* Adaptive Power Bar */}
                 {(() => {
-                  const h = (results.totalAverageSystemPowerW / 50) * 135;
-                  const y = 155 - h;
+                  const maxVal = Math.max(50, Math.ceil(Math.max(results.baselineAvgPowerW, results.totalAverageSystemPowerW) * 1.3 / 10) * 10);
+                  const scale = 135 / maxVal;
+                  const hAdapt = Math.max(4, results.totalAverageSystemPowerW * scale);
+                  const hBase = Math.max(4, results.baselineAvgPowerW * scale);
+                  const yAdapt = 155 - hAdapt;
+                  const yBase = 155 - hBase;
                   return (
-                    <g>
-                      <rect x="130" y={y} width="90" height={h} fill="#064E3B" rx="4" />
-                      <text x="175" y={y - 6} fill="#064E3B" fontSize="10" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+                    <>
+                      <text x="42" y="24" fill="#64748b" fontSize="8" fontFamily="monospace" textAnchor="end">{maxVal}W</text>
+                      <text x="42" y="90" fill="#64748b" fontSize="8" fontFamily="monospace" textAnchor="end">{(maxVal / 2).toFixed(0)}W</text>
+                      <text x="42" y="155" fill="#64748b" fontSize="8" fontFamily="monospace" textAnchor="end">0W</text>
+
+                      {/* Adaptive Power Bar */}
+                      <rect x="130" y={yAdapt} width="90" height={hAdapt} fill="#064E3B" rx="4" />
+                      <text x="175" y={yAdapt - 6} fill="#064E3B" fontSize="11" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
                         {results.totalAverageSystemPowerW.toFixed(1)} W
                       </text>
-                      <text x="175" y="172" fill="#064E3B" fontSize="9" fontFamily="monospace" textAnchor="middle">
+                      <text x="175" y="172" fill="#064E3B" fontSize="9.5" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
                         Adaptive SDR
                       </text>
-                    </g>
-                  );
-                })()}
 
-                {/* Baseline Power Bar */}
-                {(() => {
-                  const h = (results.baselineAvgPowerW / 50) * 135;
-                  const y = 155 - h;
-                  return (
-                    <g>
-                      <rect x="290" y={y} width="90" height={h} fill="#cbd5e1" rx="4" />
-                      <text x="335" y={y - 6} fill="#64748b" fontSize="10" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+                      {/* Baseline Power Bar */}
+                      <rect x="290" y={yBase} width="90" height={hBase} fill="#94a3b8" rx="4" />
+                      <text x="335" y={yBase - 6} fill="#475569" fontSize="11" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
                         {results.baselineAvgPowerW.toFixed(1)} W
                       </text>
-                      <text x="335" y="172" fill="#64748b" fontSize="9" fontFamily="monospace" textAnchor="middle">
+                      <text x="335" y="172" fill="#475569" fontSize="9.5" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
                         Fixed Baseline (80W)
                       </text>
-                    </g>
+
+                      {/* Power Reduction Badge Annotation */}
+                      <rect x="200" y="24" width="180" height="22" rx="11" fill="#ecfdf5" stroke="#a7f3d0" strokeWidth="1" />
+                      <text x="290" y="39" fill="#065f46" fontSize="9.5" fontFamily="monospace" fontWeight="bold" textAnchor="middle">
+                        {results.powerSavingPct > 0 ? `⚡ -${results.powerSavingPct.toFixed(1)}% Active Power Reduction` : 'Baseline Parity'}
+                      </text>
+                    </>
                   );
                 })()}
               </g>

@@ -12,7 +12,20 @@ import {
 } from 'lucide-react';
 
 export default function SonarInputConfig({ onNavigateToAnalysis }) {
-  const { config, updateConfig, resetToDefaults, triggerCalculate, isCalculating, results, hasCalculated, isOutdated } = useSonar();
+  const { 
+    config, 
+    updateConfig, 
+    resetToDefaults, 
+    triggerCalculate, 
+    isCalculating, 
+    results, 
+    hasCalculated, 
+    isOutdated,
+    inputMode,
+    setModeContinuous,
+    setModeManualConstant,
+    toggleInputMode
+  } = useSonar();
   const [errors, setErrors] = useState({});
   const [notification, setNotification] = useState(null);
   const [activeChart, setActiveChart] = useState('attenuation'); // 'attenuation' | 'resolution' | 'margin'
@@ -139,6 +152,102 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
           <span><strong>Initial State (All 0):</strong> Numerical inputs and outputs are initially 0. Enter your parameters and click <strong>'Calculate Sonar Performance'</strong> to compute acoustic and power metrics.</span>
         </div>
       )}
+
+      {/* ALTERNATIVE MODE SWITCHER: CONTINUOUS CHANGING INPUTS vs CONSTANT USER INPUTS */}
+      <div style={{
+        background: inputMode === 'continuous' 
+          ? 'linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%)' 
+          : 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)',
+        border: `1.5px solid ${inputMode === 'continuous' ? '#86efac' : '#fcd34d'}`,
+        borderRadius: 10,
+        padding: '14px 18px',
+        marginBottom: 16,
+        boxShadow: '0 2px 10px rgba(0,0,0,0.04)',
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        flexWrap: 'wrap',
+        gap: 14
+      }}>
+        <div style={{ maxWidth: 580 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+            <span style={{ 
+              fontSize: 10, 
+              fontWeight: 800, 
+              textTransform: 'uppercase', 
+              letterSpacing: '0.06em',
+              color: inputMode === 'continuous' ? '#166534' : '#92400e',
+              background: inputMode === 'continuous' ? '#dcfce7' : '#fef3c7',
+              padding: '2px 8px',
+              borderRadius: 4,
+              border: `1px solid ${inputMode === 'continuous' ? '#bbf7d0' : '#fde68a'}`
+            }}>
+              INPUT MODE SELECTOR
+            </span>
+            <strong style={{ fontSize: 13, color: inputMode === 'continuous' ? '#065f46' : '#78350f' }}>
+              {inputMode === 'continuous' ? '🌊 Continuous Changing Inputs Mode (Live Stream Active)' : '✋ Constant User Inputs Mode (Manual Edit Active)'}
+            </strong>
+          </div>
+          <p style={{ margin: 0, fontSize: 11, color: inputMode === 'continuous' ? '#15803d' : '#854d0e', lineHeight: 1.4 }}>
+            {inputMode === 'continuous' 
+              ? 'Inputs (target range, turbidity, depth) are actively fluctuating from the outside environment. To pause fluctuation and type your own numbers, click "Constant User Inputs (Manual)".'
+              : 'Continuous inputs are STOPPED. The values below are held constant. You can freely type, slide, and edit your custom parameters — all outputs calculate instantly!'}
+          </p>
+        </div>
+
+        {/* The Alternative Mode Switcher Button */}
+        <div style={{ 
+          display: 'inline-flex', 
+          background: '#ffffff', 
+          borderRadius: 8, 
+          padding: 4, 
+          border: '1px solid #cbd5e1',
+          boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+        }}>
+          <button
+            onClick={setModeContinuous}
+            title="Continuous Changing Inputs: Live ocean stream continuously changes inputs"
+            style={{
+              background: inputMode === 'continuous' ? '#064E3B' : 'transparent',
+              color: inputMode === 'continuous' ? '#ffffff' : '#475569',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: 6,
+              fontSize: 11.5,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              boxShadow: inputMode === 'continuous' ? '0 2px 6px rgba(6,78,59,0.3)' : 'none',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            🌊 Continuous Changing Inputs
+          </button>
+          <button
+            onClick={setModeManualConstant}
+            title="Constant User Inputs: Stops continuous stream and allows entering constant inputs"
+            style={{
+              background: inputMode === 'manual_constant' ? '#d97706' : 'transparent',
+              color: inputMode === 'manual_constant' ? '#ffffff' : '#475569',
+              border: 'none',
+              padding: '8px 16px',
+              borderRadius: 6,
+              fontSize: 11.5,
+              fontWeight: 700,
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: 6,
+              boxShadow: inputMode === 'manual_constant' ? '0 2px 6px rgba(217,119,6,0.3)' : 'none',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            ✋ Constant User Inputs (Manual)
+          </button>
+        </div>
+      </div>
 
       {/* 3-COLUMN INPUTS GRID MATCHING THE REFERENCE IMAGE */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: 12, marginBottom: 14 }}>

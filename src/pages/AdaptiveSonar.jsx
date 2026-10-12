@@ -4,7 +4,7 @@ import { calculateAbsorption } from '../acousticModel';
 import { Waves, Zap, Activity, ArrowLeft, ArrowRight } from 'lucide-react';
 
 export default function AdaptiveSonar({ onNavigateToInputs, onNavigateToPower }) {
-  const { config, results, hasCalculated, isOutdated } = useSonar();
+  const { config, results, hasCalculated, isOutdated, isLiveStreaming } = useSonar();
   const [activeChart, setActiveChart] = useState('attenuation'); // 'attenuation' | 'resolution' | 'margin'
 
   // Generate Frequency Sweep Points for Charts (from minFreqKhz to maxFreqKhz)
@@ -98,17 +98,10 @@ export default function AdaptiveSonar({ onNavigateToInputs, onNavigateToPower })
         </button>
       </div>
 
-      {isOutdated && (
-        <div style={{ background: '#fffbeb', border: '1px solid #fde68a', color: '#92400e', padding: '10px 14px', borderRadius: 8, fontSize: 11.5, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <span style={{ fontSize: 14 }}>⚠️</span>
-          <span><strong>Inputs have changed:</strong> Output results reflect previous calculation. Return to Page 1 and click <strong>'Calculate Sonar Performance'</strong> to update.</span>
-        </div>
-      )}
-
-      {!hasCalculated && (
-        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', color: '#0369a1', padding: '10px 14px', borderRadius: 8, fontSize: 11.5, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
-          <span style={{ fontSize: 14 }}>ℹ️</span>
-          <span><strong>Initial Zero State:</strong> Simulation has not been calculated yet. Output cards and plots initially show zero values. Return to Page 1 and click <strong>'Calculate Sonar Performance'</strong> to evaluate live data.</span>
+      {isLiveStreaming && (
+        <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#065f46', padding: '8px 14px', borderRadius: 8, fontSize: 11, display: 'flex', alignItems: 'center', gap: 8, marginBottom: 14 }}>
+          <span style={{ display: 'inline-block', width: 8, height: 8, borderRadius: '50%', backgroundColor: '#10b981', boxShadow: '0 0 8px #10b981' }} />
+          <span><strong>Live Adaptive Stream Active:</strong> Target {config.targetDistanceM}m • Turbidity {config.turbidityNtu} NTU • Carrier {results.recommendedFreqKhz} kHz • Transmit Power {results.activeTransmitPowerW} W • Battery Endurance {results.estimatedRuntimeHours} hrs (Updating continuously in real time).</span>
         </div>
       )}
 

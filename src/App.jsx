@@ -2,8 +2,10 @@ import React, { useState, Suspense, lazy } from 'react';
 import { SonarProvider } from './SonarContext';
 import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
+import LiveAdaptationBar from './components/LiveAdaptationBar';
 import Login from './pages/Login';
 
+const LiveSdrSonar = lazy(() => import('./pages/LiveSdrSonar'));
 const SonarInputConfig = lazy(() => import('./pages/SonarInputConfig'));
 const AdaptiveSonar = lazy(() => import('./pages/AdaptiveSonar'));
 const PowerAnalysis = lazy(() => import('./pages/PowerAnalysis'));
@@ -30,7 +32,8 @@ export default function App() {
     }
   });
 
-  const [activePage, setActivePage] = useState('SonarInputConfig');
+  // Default directly to the continuous real-time SDR & LFM Chirp Studio
+  const [activePage, setActivePage] = useState('LiveSDR');
 
   const handleLogin = (userData) => {
     setCurrentUser(userData);
@@ -55,6 +58,14 @@ export default function App() {
 
   const renderCurrentPage = () => {
     switch (activePage) {
+      case 'LiveSDR':
+        return (
+          <LiveSdrSonar
+            onNavigateToInputs={() => setActivePage('SonarInputConfig')}
+            onNavigateToAnalysis={() => setActivePage('AdaptiveSonar')}
+            onNavigateToPower={() => setActivePage('PowerAnalysis')}
+          />
+        );
       case 'SonarInputConfig':
         return (
           <SonarInputConfig 
@@ -87,8 +98,10 @@ export default function App() {
         return <Profile currentUser={currentUser} onLogout={handleLogout} />;
       default:
         return (
-          <SonarInputConfig 
-            onNavigateToAnalysis={() => setActivePage('AdaptiveSonar')} 
+          <LiveSdrSonar
+            onNavigateToInputs={() => setActivePage('SonarInputConfig')}
+            onNavigateToAnalysis={() => setActivePage('AdaptiveSonar')}
+            onNavigateToPower={() => setActivePage('PowerAnalysis')}
           />
         );
     }
@@ -104,14 +117,19 @@ export default function App() {
         />
 
         <main id="main-content" role="main" className="aquasense-main-content">
-          <Suspense fallback={<div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#064E3B' }}>Loading Telemetry Deck...</div>}>
+          <LiveAdaptationBar />
+          <Suspense fallback={
+            <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#064E3B', fontSize: 13, fontWeight: 600 }}>
+              Connecting Live SDR Hydro-Acoustic Stream...
+            </div>
+          }>
             {renderCurrentPage()}
           </Suspense>
         </main>
 
         <BottomNav
           activePage={activePage}
-          onSelectPage={setActivePage}
+          onSelectPage={(pageId) => setActivePage(pageId)}
         />
       </div>
     </SonarProvider>
