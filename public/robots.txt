@@ -1,0 +1,3 @@
+# robots.txt for AQUASENSE AUV Sonar Transmitter
+User-agent: *
+Allow: /
