@@ -3,8 +3,6 @@
    Design System & Global Styling (Matching Figma Reference Prototype)
    ========================================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=JetBrains+Mono:wght@400;500;600&display=swap');
-
 :root {
   /* Brand Palette - Emerald Ink Theme (#064E3B) */
   --primary-teal: #064E3B;

@@ -1,14 +1,14 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense, lazy } from 'react';
 import { SonarProvider } from './SonarContext';
 import Navbar from './components/Navbar';
 import BottomNav from './components/BottomNav';
-
-import SonarInputConfig from './pages/SonarInputConfig';
-import AdaptiveSonar from './pages/AdaptiveSonar';
-import PowerAnalysis from './pages/PowerAnalysis';
-import Dashboard from './pages/Dashboard';
-import Profile from './pages/Profile';
 import Login from './pages/Login';
+
+const SonarInputConfig = lazy(() => import('./pages/SonarInputConfig'));
+const AdaptiveSonar = lazy(() => import('./pages/AdaptiveSonar'));
+const PowerAnalysis = lazy(() => import('./pages/PowerAnalysis'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Profile = lazy(() => import('./pages/Profile'));
 
 import './App.css';
 
@@ -103,7 +103,9 @@ export default function App() {
           onOpenProfile={() => setActivePage('Profile')}
         />
 
-        {renderCurrentPage()}
+        <Suspense fallback={<div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#064E3B' }}>Loading Telemetry Deck...</div>}>
+          {renderCurrentPage()}
+        </Suspense>
 
         <BottomNav
           activePage={activePage}
