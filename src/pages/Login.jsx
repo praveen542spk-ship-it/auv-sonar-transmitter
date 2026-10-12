@@ -1,8 +1,55 @@
-import React, { useState } from 'react';
-import { Lock, Mail, ShieldCheck, ArrowRight, User, Database, CheckCircle2, Eye, EyeOff } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Lock, Mail, ShieldCheck, ArrowRight, User, Database, CheckCircle2, Eye, EyeOff, AlertCircle, KeyRound, UserPlus } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
+const DEFAULT_OPERATORS = [
+  {
+    name: 'Praveen Kumar',
+    email: 'praveen@aquasense.org',
+    password: 'Passphrase@123',
+    role: 'Sonar Payload Specialist',
+    callsign: 'AUV-PRA-01'
+  },
+  {
+    name: 'AUV Mission Commander',
+    email: 'admin@aquasense.navy',
+    password: 'Passphrase@123',
+    role: 'Hydroacoustic Mission Commander',
+    callsign: 'AUV-ADM-01'
+  }
+];
+
+function getStoredOperators() {
+  try {
+    const raw = localStorage.getItem('AQUASENSE_OPERATORS');
+    if (!raw) {
+      localStorage.setItem('AQUASENSE_OPERATORS', JSON.stringify(DEFAULT_OPERATORS));
+      return DEFAULT_OPERATORS;
+    }
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) && parsed.length > 0 ? parsed : DEFAULT_OPERATORS;
+  } catch (e) {
+    return DEFAULT_OPERATORS;
+  }
+}
+
+function saveOperator(operator) {
+  try {
+    const list = getStoredOperators();
+    const existingIndex = list.findIndex(o => o.email.toLowerCase() === operator.email.toLowerCase());
+    if (existingIndex >= 0) {
+      list[existingIndex] = operator;
+    } else {
+      list.push(operator);
+    }
+    localStorage.setItem('AQUASENSE_OPERATORS', JSON.stringify(list));
+  } catch (e) {
+    console.error('Failed to save operator locally', e);
+  }
+}
+
 export default function Login({ onLogin }) {
+  const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [operatorName, setOperatorName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,64 +59,171 @@ export default function Login({ onLogin }) {
   const [loading, setLoading] = useState(false);
   const [dbStatus, setDbStatus] = useState(null);
 
+  // Initialize operators in storage
+  useEffect(() => {
+    getStoredOperators();
+  }, []);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!email || !operatorName) {
-      setError('Please enter your Operator Name and Email.');
+    setError('');
+    setDbStatus(null);
+
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    const cleanedEmail = email.trim().toLowerCase();
+    const cleanedPassword = password.trim();
+
+    // 1. Validate Email Presence & Format
+    if (!cleanedEmail) {
+      setError('Please enter your operator email address.');
+      return;
+    }
+
+    if (!emailRegex.test(cleanedEmail)) {
+      setError('Invalid email address format! Please enter a valid email (e.g. name@domain.com).');
+      return;
+    }
+
+    // 2. Validate Password Presence
+    if (!cleanedPassword) {
+      setError('Please enter your security passphrase.');
       return;
     }
 
     setLoading(true);
-    setError('');
-    setDbStatus('Syncing credentials with Supabase database...');
-
-    const userData = {
-      name: operatorName.trim(),
-      email: email.trim().toLowerCase(),
-      role: role,
-      callsign: `AUV-${operatorName.slice(0, 3).toUpperCase()}-01`,
-      loginTime: new Date().toISOString()
-    };
 
     try {
-      // 1. Store login credentials and telemetry in Supabase database
-      const { error: dbError } = await supabase.from('operator_logins').insert([
-        {
-          operator_name: userData.name,
-          email: userData.email,
-          role: userData.role,
-          login_time: userData.loginTime
+      if (mode === 'login') {
+        // --- SIGN IN MODE ---
+        const operators = getStoredOperators();
+        const matched = operators.find(o => o.email.toLowerCase() === cleanedEmail);
+
+        if (!matched) {
+          setError(`Invalid email! "${email}" is not registered in the operator registry. Please enter a valid registered email or click "Register Operator".`);
+          setLoading(false);
+          return;
         }
-      ]);
 
-      if (dbError) {
-        console.info('Supabase database notice (table creation pending or RLS):', dbError.message);
+        if (matched.password !== cleanedPassword) {
+          setError('Invalid credentials! The security passphrase entered is incorrect.');
+          setLoading(false);
+          return;
+        }
+
+        const userData = {
+          name: matched.name,
+          email: matched.email,
+          role: matched.role || role,
+          callsign: matched.callsign || `AUV-${matched.name.slice(0, 3).toUpperCase()}-01`,
+          loginTime: new Date().toISOString()
+        };
+
+        setDbStatus('Syncing session with Supabase database...');
+
+        // Async sync to Supabase database (non-blocking)
+        try {
+          await supabase.from('operator_logins').insert([
+            {
+              operator_name: userData.name,
+              email: userData.email,
+              role: userData.role,
+              login_time: userData.loginTime
+            }
+          ]);
+        } catch (dbErr) {
+          console.info('Supabase database sync note:', dbErr);
+        }
+
+        try {
+          await supabase.auth.signUp({
+            email: userData.email,
+            password: cleanedPassword,
+            options: { data: { full_name: userData.name, role: userData.role } }
+          });
+        } catch (authErr) {
+          // ignore
+        }
+
+        setDbStatus(`✓ Authenticated! Welcome, ${userData.name}`);
+        setTimeout(() => {
+          onLogin(userData);
+        }, 350);
+
+      } else {
+        // --- REGISTER MODE ---
+        if (!operatorName.trim()) {
+          setError('Please enter your full operator name.');
+          setLoading(false);
+          return;
+        }
+
+        if (cleanedPassword.length < 6) {
+          setError('Security passphrase must be at least 6 characters long.');
+          setLoading(false);
+          return;
+        }
+
+        const operators = getStoredOperators();
+        const alreadyExists = operators.some(o => o.email.toLowerCase() === cleanedEmail);
+
+        if (alreadyExists) {
+          setError(`This email (${cleanedEmail}) is already registered! Please switch to Sign In or use another email.`);
+          setLoading(false);
+          return;
+        }
+
+        const newOperator = {
+          name: operatorName.trim(),
+          email: cleanedEmail,
+          password: cleanedPassword,
+          role: role,
+          callsign: `AUV-${operatorName.trim().slice(0, 3).toUpperCase()}-01`,
+          registeredAt: new Date().toISOString()
+        };
+
+        saveOperator(newOperator);
+
+        const userData = {
+          name: newOperator.name,
+          email: newOperator.email,
+          role: newOperator.role,
+          callsign: newOperator.callsign,
+          loginTime: new Date().toISOString()
+        };
+
+        setDbStatus('Creating operator credentials in Supabase cloud...');
+
+        try {
+          await supabase.from('operator_logins').insert([
+            {
+              operator_name: userData.name,
+              email: userData.email,
+              role: userData.role,
+              login_time: userData.loginTime
+            }
+          ]);
+        } catch (dbErr) {
+          console.info('Supabase database sync note:', dbErr);
+        }
+
+        try {
+          await supabase.auth.signUp({
+            email: userData.email,
+            password: cleanedPassword,
+            options: { data: { full_name: userData.name, role: userData.role } }
+          });
+        } catch (authErr) {
+          // ignore
+        }
+
+        setDbStatus(`✓ Account created! Welcome, ${userData.name}`);
+        setTimeout(() => {
+          onLogin(userData);
+        }, 350);
       }
-
-      // 2. Also try Supabase Auth signIn / signUp
-      try {
-        await supabase.auth.signUp({
-          email: userData.email,
-          password: password || 'defaultSecret123',
-          options: {
-            data: { full_name: userData.name, role: userData.role }
-          }
-        });
-      } catch (authErr) {
-        // Non-blocking
-      }
-
-      setDbStatus('✓ Authenticated & Logged to Supabase!');
-      
-      // Complete login after brief confirmation
-      setTimeout(() => {
-        onLogin(userData);
-      }, 400);
-
     } catch (err) {
-      console.warn('Login handler exception:', err);
-      // Fallback local authentication so user is never blocked
-      onLogin(userData);
+      console.warn('Authentication handler caught:', err);
+      setError('An unexpected error occurred during authentication. Please retry.');
     } finally {
       setLoading(false);
     }
@@ -90,20 +244,75 @@ export default function Login({ onLogin }) {
           </div>
         </div>
 
+        {/* Mode Switch Tabs: Sign In vs Register */}
+        <div style={{ display: 'flex', background: '#f1f5f9', padding: 4, borderRadius: 10, marginBottom: 18 }}>
+          <button
+            type="button"
+            onClick={() => { setMode('login'); setError(''); setDbStatus(null); }}
+            style={{
+              flex: 1,
+              padding: '9px 12px',
+              border: 'none',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: 12,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              background: mode === 'login' ? '#ffffff' : 'transparent',
+              color: mode === 'login' ? 'var(--primary-teal)' : 'var(--slate-muted)',
+              boxShadow: mode === 'login' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <KeyRound size={14} />
+            <span>Sign In</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => { setMode('register'); setError(''); setDbStatus(null); }}
+            style={{
+              flex: 1,
+              padding: '9px 12px',
+              border: 'none',
+              borderRadius: 8,
+              cursor: 'pointer',
+              fontWeight: 600,
+              fontSize: 12,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: 6,
+              background: mode === 'register' ? '#ffffff' : 'transparent',
+              color: mode === 'register' ? 'var(--primary-teal)' : 'var(--slate-muted)',
+              boxShadow: mode === 'register' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
+              transition: 'all 0.15s ease'
+            }}
+          >
+            <UserPlus size={14} />
+            <span>Register Operator</span>
+          </button>
+        </div>
+
         {/* Security / Database Notice */}
-        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 8, padding: '10px 14px', marginBottom: 18, display: 'flex', alignItems: 'center', gap: 10 }}>
+        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 8, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
           <ShieldCheck size={20} color="var(--accent-cyan)" />
           <div style={{ fontSize: 11, color: 'var(--primary-teal)', lineHeight: 1.4 }}>
-            <strong>Operator Gateway:</strong> Login activity is recorded directly to Supabase cloud database.
+            <strong>Operator Gateway:</strong> {mode === 'login' ? 'Only registered operator accounts can access the telemetry deck.' : 'Register new mission operator credentials with Supabase cloud database.'}
           </div>
         </div>
 
+        {/* Error Alert */}
         {error && (
-          <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', padding: '8px 12px', borderRadius: 8, fontSize: 11.5, marginBottom: 14 }}>
-            {error}
+          <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', padding: '10px 12px', borderRadius: 8, fontSize: 12, marginBottom: 14, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+            <AlertCircle size={16} color="#b91c1c" style={{ flexShrink: 0, marginTop: 1 }} />
+            <span style={{ lineHeight: 1.4 }}>{error}</span>
           </div>
         )}
 
+        {/* Success / DB Status */}
         {dbStatus && (
           <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#065f46', padding: '8px 12px', borderRadius: 8, fontSize: 11.5, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
             <CheckCircle2 size={15} color="#059669" />
@@ -112,23 +321,25 @@ export default function Login({ onLogin }) {
         )}
 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {/* Operator Name */}
-          <div>
-            <label style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
-              OPERATOR NAME
-            </label>
-            <div style={{ position: 'relative' }}>
-              <input
-                type="text"
-                value={operatorName}
-                onChange={(e) => setOperatorName(e.target.value)}
-                required
-                className="login-input"
-                placeholder="e.g. Praveen Kumar"
-              />
-              <User size={16} color="#085464" style={{ position: 'absolute', left: 12, top: 12 }} />
+          {/* Operator Name (Shown in Register Mode) */}
+          {mode === 'register' && (
+            <div>
+              <label style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
+                OPERATOR FULL NAME
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="text"
+                  value={operatorName}
+                  onChange={(e) => setOperatorName(e.target.value)}
+                  required
+                  className="login-input"
+                  placeholder="e.g. Praveen Kumar"
+                />
+                <User size={16} color="#085464" style={{ position: 'absolute', left: 12, top: 12 }} />
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Operator Email */}
           <div>
@@ -142,7 +353,7 @@ export default function Login({ onLogin }) {
                 onChange={(e) => setEmail(e.target.value)}
                 required
                 className="login-input"
-                placeholder="e.g. praveen@aquasense.org"
+                placeholder={mode === 'login' ? 'Enter registered email' : 'yourname@aquasense.org'}
               />
               <Mail size={16} color="#085464" style={{ position: 'absolute', left: 12, top: 12 }} />
             </div>
@@ -161,7 +372,7 @@ export default function Login({ onLogin }) {
                 required
                 className="login-input"
                 style={{ paddingRight: 40 }}
-                placeholder="Enter security passphrase"
+                placeholder={mode === 'login' ? 'Enter security passphrase' : 'Create passphrase (min 6 chars)'}
               />
               <Lock size={16} color="#085464" style={{ position: 'absolute', left: 12, top: 12 }} />
               <button
@@ -187,22 +398,45 @@ export default function Login({ onLogin }) {
             </div>
           </div>
 
-          {/* Operational Role */}
-          <div>
-            <label style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
-              MISSION ROLE
-            </label>
-            <select
-              value={role}
-              onChange={(e) => setRole(e.target.value)}
-              className="login-select"
-            >
-              <option value="Sonar Payload Specialist">Sonar Payload Specialist</option>
-              <option value="AUV Systems Engineer">AUV Systems Engineer</option>
-              <option value="Hydroacoustic Mission Commander">Hydroacoustic Mission Commander</option>
-              <option value="Research & Tank Trials Operator">Research &amp; Tank Trials Operator</option>
-            </select>
-          </div>
+          {/* Operational Role (Shown in Register Mode) */}
+          {mode === 'register' && (
+            <div>
+              <label style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
+                MISSION ROLE
+              </label>
+              <select
+                value={role}
+                onChange={(e) => setRole(e.target.value)}
+                className="login-select"
+              >
+                <option value="Sonar Payload Specialist">Sonar Payload Specialist</option>
+                <option value="AUV Systems Engineer">AUV Systems Engineer</option>
+                <option value="Hydroacoustic Mission Commander">Hydroacoustic Mission Commander</option>
+                <option value="Research & Tank Trials Operator">Research &amp; Tank Trials Operator</option>
+              </select>
+            </div>
+          )}
+
+          {/* Demo account helper in Sign In mode */}
+          {mode === 'login' && (
+            <div style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: 8, padding: '9px 12px', fontSize: 11, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ lineHeight: 1.4 }}>
+                <span style={{ color: '#64748b' }}>Demo Account: </span>
+                <span style={{ fontWeight: 600, color: '#0f172a' }}>praveen@aquasense.org</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setEmail('praveen@aquasense.org');
+                  setPassword('Passphrase@123');
+                  setError('');
+                }}
+                style={{ background: '#e0f2fe', color: '#0284c7', border: '1px solid #bae6fd', borderRadius: 6, padding: '4px 10px', fontSize: 10.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
+              >
+                Fill Demo
+              </button>
+            </div>
+          )}
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 10.5, color: 'var(--slate-muted)' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -220,13 +454,17 @@ export default function Login({ onLogin }) {
             className="btn-primary-teal" 
             style={{ padding: '12px 16px', marginTop: 4, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 12.5 }}
           >
-            <span>{loading ? 'Recording to Database...' : 'Authenticate & Enter System'}</span>
+            <span>
+              {loading 
+                ? (mode === 'login' ? 'Verifying Credentials...' : 'Registering Operator...') 
+                : (mode === 'login' ? 'Authenticate & Enter System' : 'Create Operator Account & Enter')}
+            </span>
             <ArrowRight size={16} />
           </button>
         </form>
 
         <div style={{ textAlign: 'center', marginTop: 18, fontSize: 9.5, color: 'var(--slate-muted)', fontFamily: 'monospace' }}>
-          AUV TELEMETRY ENGINE V2.4-SDR • SIMULATION ACCESS
+          AUV TELEMETRY ENGINE V2.4-SDR • MISSION CONTROL
         </div>
       </div>
     </div>
