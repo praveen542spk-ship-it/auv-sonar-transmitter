@@ -1,7 +1,7 @@
 import React from 'react';
 import { User, Cpu } from 'lucide-react';
 
-export default function Navbar({ activePage, onOpenProfile }) {
+export default function Navbar({ activePage, currentUser, onOpenProfile }) {
   const getSubsystemTitle = () => {
     switch (activePage) {
       case 'SonarInputConfig':
@@ -45,10 +45,15 @@ export default function Navbar({ activePage, onOpenProfile }) {
           className={`nav-avatar-btn ${activePage === 'Profile' ? 'active-profile' : ''}`} 
           aria-label="User Profile"
           onClick={onOpenProfile}
-          title="Operator Station & Battery Status"
-          style={{ cursor: 'pointer' }}
+          title={`Operator: ${currentUser?.name || 'Praveen'} (Click for station & logout)`}
+          style={{ cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, padding: '4px 8px' }}
         >
-          <User size={16} />
+          <User size={15} />
+          {currentUser?.name && (
+            <span style={{ fontSize: 10, fontWeight: 600, color: 'var(--navy-dark)' }}>
+              {currentUser.name.split(' ')[0]}
+            </span>
+          )}
         </button>
       </div>
     </header>

@@ -13,17 +13,44 @@ import Login from './pages/Login';
 import './App.css';
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      return sessionStorage.getItem('auv_sonar_auth') === 'true';
+    } catch (e) {
+      return false;
+    }
+  });
+
+  const [currentUser, setCurrentUser] = useState(() => {
+    try {
+      const saved = sessionStorage.getItem('auv_sonar_user');
+      return saved ? JSON.parse(saved) : { name: 'Praveen Kumar', email: 'praveen@aquasense.org', role: 'Sonar Specialist' };
+    } catch (e) {
+      return { name: 'Praveen Kumar', email: 'praveen@aquasense.org', role: 'Sonar Specialist' };
+    }
+  });
+
   const [activePage, setActivePage] = useState('SonarInputConfig');
 
+  const handleLogin = (userData) => {
+    setCurrentUser(userData);
+    setIsAuthenticated(true);
+    try {
+      sessionStorage.setItem('auv_sonar_auth', 'true');
+      sessionStorage.setItem('auv_sonar_user', JSON.stringify(userData));
+    } catch (e) {}
+  };
+
+  const handleLogout = () => {
+    setIsAuthenticated(false);
+    try {
+      sessionStorage.removeItem('auv_sonar_auth');
+      sessionStorage.removeItem('auv_sonar_user');
+    } catch (e) {}
+  };
+
   if (!isAuthenticated) {
-    return (
-      <Login 
-        onLogin={() => {
-          setIsAuthenticated(true);
-        }} 
-      />
-    );
+    return <Login onLogin={handleLogin} />;
   }
 
   const renderCurrentPage = () => {
@@ -57,7 +84,7 @@ export default function App() {
           />
         );
       case 'Profile':
-        return <Profile onLogout={() => setIsAuthenticated(false)} />;
+        return <Profile currentUser={currentUser} onLogout={handleLogout} />;
       default:
         return (
           <SonarInputConfig 
@@ -72,6 +99,7 @@ export default function App() {
       <div className="aquasense-app">
         <Navbar
           activePage={activePage}
+          currentUser={currentUser}
           onOpenProfile={() => setActivePage('Profile')}
         />
 

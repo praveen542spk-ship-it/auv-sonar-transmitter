@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Battery, Cpu, LogOut, Download, Zap } from 'lucide-react';
 import { calculateMissionDuration } from '../acousticModel';
 
-export default function Profile({ onLogout }) {
+export default function Profile({ currentUser, onLogout }) {
   const [missionPwrW] = useState(24);
   const [batteryLevelPct] = useState(88);
 
@@ -30,7 +30,7 @@ export default function Profile({ onLogout }) {
 
     const link = document.createElement("a");
     link.href = encodeURI(csv);
-    link.download = `AUV_Mission_Battery_Status_${0}.csv`;
+    link.download = `AUV_Mission_Battery_Status_${Date.now()}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -41,13 +41,42 @@ export default function Profile({ onLogout }) {
       <div className="page-header-block">
         <div className="page-header-badge-row">
           <span className="badge-tag-blue">● AUV MISSION STATION</span>
-          <span className="badge-tag-green">CLEARANCE: LEVEL 4 (OPERATOR)</span>
+          <span className="badge-tag-green">CLEARANCE: LEVEL 4 // {currentUser?.name ? currentUser.name.toUpperCase() : 'OPERATOR'}</span>
         </div>
         <h1 className="page-title">AUV Mission Station &amp; Battery Telemetry</h1>
         <p className="page-description">
           Autonomous Underwater Vehicle payload power diagnostics, Li-ion 48V battery fuel gauge, and active mission endurance estimation.
         </p>
       </div>
+
+      {/* Authenticated Operator Details Card */}
+      <section className="aqua-card" style={{ marginBottom: 14 }}>
+        <div className="aqua-card-header" style={{ marginBottom: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Cpu size={18} color="var(--primary-teal)" />
+            <h2 className="aqua-card-title">Authenticated Operator Profile</h2>
+          </div>
+          <span className="badge-tag-blue">LOGGED TO SUPABASE DATABASE</span>
+        </div>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 10, fontSize: 11 }}>
+          <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0' }}>
+            <span style={{ fontSize: 9.5, color: 'var(--slate-muted)', display: 'block' }}>OPERATOR NAME</span>
+            <strong style={{ fontSize: 13, color: 'var(--navy-dark)' }}>{currentUser?.name || 'Praveen Kumar'}</strong>
+          </div>
+          <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0' }}>
+            <span style={{ fontSize: 9.5, color: 'var(--slate-muted)', display: 'block' }}>EMAIL / CREDENTIALS</span>
+            <strong style={{ fontSize: 12, color: 'var(--primary-teal)' }}>{currentUser?.email || 'praveen@aquasense.org'}</strong>
+          </div>
+          <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0' }}>
+            <span style={{ fontSize: 9.5, color: 'var(--slate-muted)', display: 'block' }}>MISSION ROLE</span>
+            <strong style={{ fontSize: 12, color: 'var(--mint-green-dark)' }}>{currentUser?.role || 'Sonar Payload Specialist'}</strong>
+          </div>
+          <div style={{ background: '#f8fafc', padding: '8px 12px', borderRadius: 6, border: '1px solid #e2e8f0' }}>
+            <span style={{ fontSize: 9.5, color: 'var(--slate-muted)', display: 'block' }}>TELEMETRY CALLSIGN</span>
+            <strong style={{ fontSize: 12, color: 'var(--accent-cyan)', fontFamily: 'monospace' }}>{currentUser?.callsign || 'AUV-PRA-01'}</strong>
+          </div>
+        </div>
+      </section>
 
       {/* Hero Battery Fuel Gauge Card */}
       <section className="duration-hero-card" style={{ marginBottom: 14 }}>
