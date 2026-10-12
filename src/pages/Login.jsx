@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Lock, Mail, ShieldCheck, ArrowRight, User, Database, CheckCircle2, Eye, EyeOff, AlertCircle, KeyRound, UserPlus } from 'lucide-react';
+import { Lock, Mail, User, Eye, EyeOff, AlertCircle, Check, CheckCircle2 } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
 const DEFAULT_OPERATORS = [
@@ -76,11 +76,11 @@ async function verifyEmail(email) {
   }
 
   if (DUMMY_USERNAMES.includes(user)) {
-    return { valid: false, error: `Invalid email! Generic dummy username "${user}@" is not allowed. Please enter your real email address.` };
+    return { valid: false, error: `Invalid email! Generic dummy username "${user}@" is not allowed. Please use your real email address.` };
   }
 
   if (DISPOSABLE_OR_FAKE_DOMAINS.includes(domain)) {
-    return { valid: false, error: `Invalid email! Disposable or dummy domain "@${domain}" is not allowed.` };
+    return { valid: false, error: `Invalid email! Dummy or disposable domain "@${domain}" is not allowed.` };
   }
 
   const tld = domain.split('.').pop();
@@ -103,7 +103,7 @@ async function verifyEmail(email) {
         }
       }
     } catch (e) {
-      // Allow through if DNS check fails due to local network restriction
+      // Allow through if network DNS query fails
     }
   }
 
@@ -116,15 +116,21 @@ export default function Login({ onLogin }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [keepSignedIn, setKeepSignedIn] = useState(true);
   const [role, setRole] = useState('Sonar Payload Specialist');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [dbStatus, setDbStatus] = useState(null);
 
-  // Initialize operators in storage
   useEffect(() => {
     getStoredOperators();
   }, []);
+
+  const switchMode = (newMode) => {
+    setMode(newMode);
+    setError('');
+    setDbStatus(null);
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -134,21 +140,19 @@ export default function Login({ onLogin }) {
     const cleanedEmail = email.trim().toLowerCase();
     const cleanedPassword = password.trim();
 
-    // 1. Basic Presence Validation
     if (!cleanedEmail) {
-      setError('Please enter your operator email address.');
+      setError('Please enter your email address.');
       return;
     }
 
     if (!cleanedPassword) {
-      setError('Please enter your security passphrase.');
+      setError('Please enter your password.');
       return;
     }
 
     setLoading(true);
 
     try {
-      // 2. Comprehensive Email Verification (Format, Fake Users, Fake Domains, DNS MX)
       const emailCheck = await verifyEmail(cleanedEmail);
       if (!emailCheck.valid) {
         setError(emailCheck.error);
@@ -157,18 +161,17 @@ export default function Login({ onLogin }) {
       }
 
       if (mode === 'login') {
-        // --- SIGN IN MODE ---
         const operators = getStoredOperators();
         const matched = operators.find(o => o.email.toLowerCase() === cleanedEmail);
 
         if (!matched) {
-          setError(`Invalid email! "${email}" is not registered in the operator registry. Please enter a valid registered email or click "Register Operator".`);
+          setError(`Invalid email! "${email}" is not registered. Please enter a valid registered email or click "Create an account".`);
           setLoading(false);
           return;
         }
 
         if (matched.password !== cleanedPassword) {
-          setError('Invalid credentials! The security passphrase entered is incorrect.');
+          setError('Invalid credentials! The password entered is incorrect.');
           setLoading(false);
           return;
         }
@@ -181,9 +184,8 @@ export default function Login({ onLogin }) {
           loginTime: new Date().toISOString()
         };
 
-        setDbStatus('Syncing session with Supabase database...');
+        setDbStatus('Syncing credentials with cloud database...');
 
-        // Async sync to Supabase database (non-blocking)
         try {
           await supabase.from('operator_logins').insert([
             {
@@ -194,34 +196,24 @@ export default function Login({ onLogin }) {
             }
           ]);
         } catch (dbErr) {
-          console.info('Supabase database sync note:', dbErr);
+          // non-blocking
         }
 
-        try {
-          await supabase.auth.signUp({
-            email: userData.email,
-            password: cleanedPassword,
-            options: { data: { full_name: userData.name, role: userData.role } }
-          });
-        } catch (authErr) {
-          // ignore
-        }
-
-        setDbStatus(`✓ Authenticated! Welcome, ${userData.name}`);
+        setDbStatus(`✓ Welcome back, ${userData.name}!`);
         setTimeout(() => {
           onLogin(userData);
         }, 350);
 
       } else {
-        // --- REGISTER MODE ---
-        if (!operatorName.trim()) {
-          setError('Please enter your full operator name.');
+        // Register Mode
+        if (!operatorName.trim() || operatorName.trim().length < 2) {
+          setError('Please enter your full name (at least 2 characters).');
           setLoading(false);
           return;
         }
 
         if (cleanedPassword.length < 6) {
-          setError('Security passphrase must be at least 6 characters long.');
+          setError('Password must be at least 6 characters long.');
           setLoading(false);
           return;
         }
@@ -230,7 +222,7 @@ export default function Login({ onLogin }) {
         const alreadyExists = operators.some(o => o.email.toLowerCase() === cleanedEmail);
 
         if (alreadyExists) {
-          setError(`This email (${cleanedEmail}) is already registered! Please switch to Sign In or use another email.`);
+          setError(`This email (${cleanedEmail}) is already registered! Please sign in.`);
           setLoading(false);
           return;
         }
@@ -254,7 +246,7 @@ export default function Login({ onLogin }) {
           loginTime: new Date().toISOString()
         };
 
-        setDbStatus('Creating operator credentials in Supabase cloud...');
+        setDbStatus('Registering operator in Supabase cloud...');
 
         try {
           await supabase.from('operator_logins').insert([
@@ -266,17 +258,7 @@ export default function Login({ onLogin }) {
             }
           ]);
         } catch (dbErr) {
-          console.info('Supabase database sync note:', dbErr);
-        }
-
-        try {
-          await supabase.auth.signUp({
-            email: userData.email,
-            password: cleanedPassword,
-            options: { data: { full_name: userData.name, role: userData.role } }
-          });
-        } catch (authErr) {
-          // ignore
+          // non-blocking
         }
 
         setDbStatus(`✓ Account created! Welcome, ${userData.name}`);
@@ -285,231 +267,211 @@ export default function Login({ onLogin }) {
         }, 350);
       }
     } catch (err) {
-      console.warn('Authentication handler caught:', err);
-      setError('An unexpected error occurred during authentication. Please retry.');
+      console.warn('Auth handler error:', err);
+      setError('An unexpected error occurred. Please try again.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, background: 'var(--bg-page)' }}>
-      <div style={{ width: '100%', maxWidth: 460, background: '#ffffff', borderRadius: 16, border: '1px solid var(--border-color)', padding: '28px 32px', boxShadow: 'var(--shadow-lg)' }}>
+    <div className="verso-auth-viewport">
+      <div className={`verso-auth-card mode-${mode}`}>
         
-        {/* Brand Header */}
-        <div style={{ textAlign: 'center', marginBottom: 20 }}>
-          <div className="sonar-logo-icon" style={{ width: 44, height: 44, margin: '0 auto 10px auto' }}></div>
-          <h1 style={{ fontFamily: 'var(--font-serif)', fontSize: 24, fontWeight: 700, color: 'var(--navy-dark)', margin: 0 }}>
-            AquaSense AUV
+        {/* Form Panel (Slides left/right smoothly) */}
+        <div className="verso-panel-form">
+          <h1 className="verso-title">
+            {mode === 'login' ? 'Sign in' : 'Create account'}
           </h1>
-          <div style={{ fontFamily: 'var(--font-mono)', fontSize: 10, color: 'var(--slate-muted)', letterSpacing: 1, marginTop: 4 }}>
-            SYS // LOW-POWER ADAPTIVE SDR SONAR LINK
-          </div>
-        </div>
+          <div className="verso-title-bar"></div>
 
-        {/* Mode Switch Tabs: Sign In vs Register */}
-        <div style={{ display: 'flex', background: '#f1f5f9', padding: 4, borderRadius: 10, marginBottom: 18 }}>
-          <button
-            type="button"
-            onClick={() => { setMode('login'); setError(''); setDbStatus(null); }}
-            style={{
-              flex: 1,
-              padding: '9px 12px',
-              border: 'none',
-              borderRadius: 8,
-              cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: 12,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              background: mode === 'login' ? '#ffffff' : 'transparent',
-              color: mode === 'login' ? 'var(--primary-teal)' : 'var(--slate-muted)',
-              boxShadow: mode === 'login' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            <KeyRound size={14} />
-            <span>Sign In</span>
-          </button>
-          <button
-            type="button"
-            onClick={() => { setMode('register'); setError(''); setDbStatus(null); }}
-            style={{
-              flex: 1,
-              padding: '9px 12px',
-              border: 'none',
-              borderRadius: 8,
-              cursor: 'pointer',
-              fontWeight: 600,
-              fontSize: 12,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: 6,
-              background: mode === 'register' ? '#ffffff' : 'transparent',
-              color: mode === 'register' ? 'var(--primary-teal)' : 'var(--slate-muted)',
-              boxShadow: mode === 'register' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none',
-              transition: 'all 0.15s ease'
-            }}
-          >
-            <UserPlus size={14} />
-            <span>Register Operator</span>
-          </button>
-        </div>
+          {error && (
+            <div style={{ background: '#fdf2f2', border: '1px solid #fecaca', color: '#991b1b', padding: '9px 12px', borderRadius: 8, fontSize: 12, marginBottom: 18, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
+              <AlertCircle size={15} color="#991b1b" style={{ flexShrink: 0, marginTop: 2 }} />
+              <span style={{ lineHeight: 1.4 }}>{error}</span>
+            </div>
+          )}
 
-        {/* Security / Database Notice */}
-        <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', borderRadius: 8, padding: '10px 14px', marginBottom: 16, display: 'flex', alignItems: 'center', gap: 10 }}>
-          <ShieldCheck size={20} color="var(--accent-cyan)" />
-          <div style={{ fontSize: 11, color: 'var(--primary-teal)', lineHeight: 1.4 }}>
-            <strong>Operator Gateway:</strong> {mode === 'login' ? 'Only registered operator accounts can access the telemetry deck.' : 'Register new mission operator credentials with Supabase cloud database.'}
-          </div>
-        </div>
+          {dbStatus && (
+            <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#065f46', padding: '9px 12px', borderRadius: 8, fontSize: 12, marginBottom: 18, display: 'flex', alignItems: 'center', gap: 8 }}>
+              <CheckCircle2 size={15} color="#059669" />
+              <span>{dbStatus}</span>
+            </div>
+          )}
 
-        {/* Error Alert */}
-        {error && (
-          <div style={{ background: '#fee2e2', border: '1px solid #fca5a5', color: '#b91c1c', padding: '10px 12px', borderRadius: 8, fontSize: 12, marginBottom: 14, display: 'flex', alignItems: 'flex-start', gap: 8 }}>
-            <AlertCircle size={16} color="#b91c1c" style={{ flexShrink: 0, marginTop: 1 }} />
-            <span style={{ lineHeight: 1.4 }}>{error}</span>
-          </div>
-        )}
-
-        {/* Success / DB Status */}
-        {dbStatus && (
-          <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', color: '#065f46', padding: '8px 12px', borderRadius: 8, fontSize: 11.5, marginBottom: 14, display: 'flex', alignItems: 'center', gap: 6 }}>
-            <CheckCircle2 size={15} color="#059669" />
-            <span>{dbStatus}</span>
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
-          {/* Operator Name (Shown in Register Mode) */}
-          {mode === 'register' && (
-            <div>
-              <label style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
-                OPERATOR FULL NAME
-              </label>
-              <div style={{ position: 'relative' }}>
+          <form onSubmit={handleSubmit}>
+            {/* Full Name (in Register mode) */}
+            {mode === 'register' && (
+              <div className="verso-input-group">
+                <label className="verso-input-label">Full name</label>
                 <input
                   type="text"
                   value={operatorName}
                   onChange={(e) => setOperatorName(e.target.value)}
                   required
-                  className="login-input"
+                  className="verso-input"
                   placeholder="e.g. Praveen Kumar"
                 />
-                <User size={16} color="#064E3B" style={{ position: 'absolute', left: 12, top: 12 }} />
+                <span className="verso-input-icon">
+                  <User size={17} />
+                </span>
               </div>
-            </div>
-          )}
+            )}
 
-          {/* Operator Email */}
-          <div>
-            <label style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
-              OPERATOR EMAIL / ID
-            </label>
-            <div style={{ position: 'relative' }}>
+            {/* Email Address */}
+            <div className="verso-input-group">
+              <label className="verso-input-label">
+                {mode === 'login' ? 'Username or email' : 'Email address'}
+              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="login-input"
-                placeholder={mode === 'login' ? 'Enter registered email' : 'yourname@aquasense.org'}
+                className="verso-input"
+                placeholder={mode === 'login' ? 'Enter your email' : 'yourname@aquasense.org'}
               />
-              <Mail size={16} color="#064E3B" style={{ position: 'absolute', left: 12, top: 12 }} />
+              <span className="verso-input-icon">
+                {mode === 'login' ? <User size={17} /> : <Mail size={17} />}
+              </span>
             </div>
-          </div>
 
-          {/* Security Passphrase */}
-          <div>
-            <label style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
-              SECURITY PASSPHRASE
-            </label>
-            <div style={{ position: 'relative' }}>
+            {/* Password */}
+            <div className="verso-input-group" style={{ marginBottom: mode === 'register' ? 12 : 20 }}>
+              <label className="verso-input-label">Password</label>
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="login-input"
-                style={{ paddingRight: 40 }}
-                placeholder={mode === 'login' ? 'Enter security passphrase' : 'Create passphrase (min 6 chars)'}
+                className="verso-input"
+                placeholder="Enter password"
               />
-              <Lock size={16} color="#064E3B" style={{ position: 'absolute', left: 12, top: 12 }} />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                style={{
-                  position: 'absolute',
-                  right: 10,
-                  top: 9,
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer',
-                  padding: 4,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  color: '#64748b'
-                }}
-                title={showPassword ? 'Hide passphrase' : 'Show passphrase'}
+                className="verso-input-icon"
+                title={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
               </button>
             </div>
-          </div>
 
-          {/* Operational Role (Shown in Register Mode) */}
-          {mode === 'register' && (
+            {/* Register Password Hint & Role */}
+            {mode === 'register' && (
+              <div style={{ marginBottom: 22 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 6, marginBottom: 14 }}>
+                  <div style={{ flex: 1, height: 2, background: password.length >= 6 ? '#064E3B' : '#dcd4c7', borderRadius: 2 }}></div>
+                  <div style={{ flex: 1, height: 2, background: password.length >= 8 ? '#064E3B' : '#dcd4c7', borderRadius: 2 }}></div>
+                  <div style={{ flex: 1, height: 2, background: password.length >= 10 ? '#064E3B' : '#dcd4c7', borderRadius: 2 }}></div>
+                  <span style={{ fontSize: 11, color: '#8c827a', marginLeft: 4, whiteSpace: 'nowrap' }}>Use 6 characters or more.</span>
+                </div>
+
+                <div className="verso-input-group" style={{ marginBottom: 0 }}>
+                  <label className="verso-input-label">Mission role</label>
+                  <select
+                    value={role}
+                    onChange={(e) => setRole(e.target.value)}
+                    className="verso-input"
+                    style={{ cursor: 'pointer', appearance: 'auto', background: 'transparent' }}
+                  >
+                    <option value="Sonar Payload Specialist">Sonar Payload Specialist</option>
+                    <option value="AUV Systems Engineer">AUV Systems Engineer</option>
+                    <option value="Hydroacoustic Mission Commander">Hydroacoustic Mission Commander</option>
+                    <option value="Research & Tank Trials Operator">Research &amp; Tank Trials Operator</option>
+                  </select>
+                </div>
+              </div>
+            )}
+
+            {/* Keep Signed In & Forgot Password (in Login mode) */}
+            {mode === 'login' && (
+              <div className="verso-checkbox-row">
+                <label className="verso-checkbox-label" onClick={() => setKeepSignedIn(!keepSignedIn)}>
+                  <div className="verso-checkbox-custom" style={{ background: keepSignedIn ? '#064E3B' : '#dcd4c7' }}>
+                    {keepSignedIn && <Check size={12} strokeWidth={3} />}
+                  </div>
+                  <span>Keep me signed in</span>
+                </label>
+                <button
+                  type="button"
+                  onClick={() => setError('Password reset instructions sent to registered system administrator.')}
+                  className="verso-link"
+                >
+                  Forgot password?
+                </button>
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={loading}
+              className="verso-btn-pill"
+            >
+              <span>
+                {loading
+                  ? (mode === 'login' ? 'Signing in...' : 'Creating account...')
+                  : (mode === 'login' ? 'Sign in' : 'Create account')}
+              </span>
+            </button>
+          </form>
+
+          {/* Switch Mode Footer Link */}
+          <div className="verso-switch-footer">
+            {mode === 'login' ? (
+              <span>
+                New to AQUASENSE? 
+                <button
+                  type="button"
+                  onClick={() => switchMode('register')}
+                  className="verso-switch-link"
+                >
+                  Create an account
+                </button>
+              </span>
+            ) : (
+              <span>
+                Already have an account? 
+                <button
+                  type="button"
+                  onClick={() => switchMode('login')}
+                  className="verso-switch-link"
+                >
+                  Sign in
+                </button>
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Brand Emerald Ink Panel (Slides left/right smoothly with organic slant) */}
+        <div className="verso-panel-brand">
+          <div className="verso-brand-tag">A Q U A S E N S E</div>
+
+          {mode === 'login' ? (
             <div>
-              <label style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
-                MISSION ROLE
-              </label>
-              <select
-                value={role}
-                onChange={(e) => setRole(e.target.value)}
-                className="login-select"
-              >
-                <option value="Sonar Payload Specialist">Sonar Payload Specialist</option>
-                <option value="AUV Systems Engineer">AUV Systems Engineer</option>
-                <option value="Hydroacoustic Mission Commander">Hydroacoustic Mission Commander</option>
-                <option value="Research & Tank Trials Operator">Research &amp; Tank Trials Operator</option>
-              </select>
+              <h2 className="verso-hero-heading">
+                Welcome<br />
+                <span className="verso-hero-italic">back.</span>
+              </h2>
+              <p className="verso-hero-desc">
+                Your telemetry data, acoustic links and mission parameters are exactly where you left them.
+              </p>
+            </div>
+          ) : (
+            <div>
+              <h2 className="verso-hero-heading">
+                Start the<br />
+                <span className="verso-hero-italic">first ping.</span>
+              </h2>
+              <p className="verso-hero-desc">
+                One account for every sonar trial, telemetry deck and adaptive mission you command.
+              </p>
             </div>
           )}
-
-
-
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 10.5, color: 'var(--slate-muted)' }}>
-            <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-              <Database size={13} color="var(--mint-green-dark)" />
-              <span>Supabase Cloud Sync: Active</span>
-            </span>
-            <span style={{ fontFamily: 'monospace', color: 'var(--accent-cyan)' }}>
-              SSL 256-bit
-            </span>
-          </div>
-
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="btn-primary-teal" 
-            style={{ padding: '12px 16px', marginTop: 4, width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: 12.5 }}
-          >
-            <span>
-              {loading 
-                ? (mode === 'login' ? 'Verifying Credentials...' : 'Registering Operator...') 
-                : (mode === 'login' ? 'Authenticate & Enter System' : 'Create Operator Account & Enter')}
-            </span>
-            <ArrowRight size={16} />
-          </button>
-        </form>
-
-        <div style={{ textAlign: 'center', marginTop: 18, fontSize: 9.5, color: 'var(--slate-muted)', fontFamily: 'monospace' }}>
-          AUV TELEMETRY ENGINE V2.4-SDR • MISSION CONTROL
         </div>
+
       </div>
     </div>
   );

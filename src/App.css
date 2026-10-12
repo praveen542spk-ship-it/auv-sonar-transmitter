@@ -1080,3 +1080,306 @@ input[type="number"] {
   -moz-appearance: textfield;
   appearance: textfield;
 }
+
+/* ==========================================================================
+   Verso-Inspired Luxury Animated Split-Screen Login / Register
+   ========================================================================== */
+
+.verso-auth-viewport {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 30px 16px;
+  background-color: #f2ebe1;
+  background-image: radial-gradient(#dfd5c5 1.2px, transparent 1.2px);
+  background-size: 24px 24px;
+}
+
+.verso-auth-card {
+  width: 100%;
+  max-width: 960px;
+  min-height: 590px;
+  background-color: #faf6ef;
+  border-radius: 28px;
+  box-shadow: 0 25px 60px -15px rgba(6, 78, 59, 0.22), 0 10px 25px -5px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+  position: relative;
+  display: flex;
+}
+
+/* Sliding Panels */
+.verso-panel-form {
+  width: 50%;
+  padding: 48px 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: #faf6ef;
+  z-index: 2;
+  transition: transform 0.65s cubic-bezier(0.77, 0, 0.175, 1), opacity 0.35s ease;
+}
+
+.verso-panel-brand {
+  width: 50%;
+  background: linear-gradient(145deg, #064E3B 0%, #04382a 50%, #02241b 100%);
+  color: #ffffff;
+  padding: 56px 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+  z-index: 1;
+  transition: transform 0.65s cubic-bezier(0.77, 0, 0.175, 1), clip-path 0.65s cubic-bezier(0.77, 0, 0.175, 1);
+}
+
+/* Login mode: Form is Left, Brand is Right with slant */
+.verso-auth-card.mode-login .verso-panel-form {
+  transform: translateX(0%);
+}
+.verso-auth-card.mode-login .verso-panel-brand {
+  transform: translateX(0%);
+  clip-path: polygon(9% 0, 100% 0, 100% 100%, 0% 100%);
+}
+
+/* Register mode: Brand slides to Left, Form slides to Right */
+.verso-auth-card.mode-register .verso-panel-form {
+  transform: translateX(100%);
+}
+.verso-auth-card.mode-register .verso-panel-brand {
+  transform: translateX(-100%);
+  clip-path: polygon(0 0, 100% 0, 91% 100%, 0% 100%);
+}
+
+/* Titles */
+.verso-title {
+  font-family: var(--font-sans);
+  font-size: 28px;
+  font-weight: 700;
+  color: #1a2721;
+  margin-bottom: 6px;
+  letter-spacing: -0.5px;
+}
+
+.verso-title-bar {
+  width: 38px;
+  height: 3px;
+  background-color: #b4833e;
+  border-radius: 2px;
+  margin-bottom: 28px;
+}
+
+/* Minimalist Floating Underline Inputs */
+.verso-input-group {
+  margin-bottom: 22px;
+  position: relative;
+}
+
+.verso-input-label {
+  display: block;
+  font-size: 11.5px;
+  font-weight: 500;
+  color: #8c827a;
+  margin-bottom: 3px;
+  letter-spacing: 0.2px;
+}
+
+.verso-input {
+  width: 100%;
+  background: transparent !important;
+  border: none !important;
+  border-bottom: 1.5px solid #dcd4c7 !important;
+  border-radius: 0 !important;
+  padding: 8px 36px 8px 0;
+  font-size: 14px;
+  color: #1a2721 !important;
+  font-weight: 500;
+  outline: none !important;
+  box-shadow: none !important;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.verso-input:focus {
+  border-bottom-color: #064E3B !important;
+  box-shadow: 0 1px 0 0 #064E3B !important;
+}
+
+.verso-input::placeholder {
+  color: #a39c91 !important;
+  font-weight: 400;
+  font-size: 13.5px;
+}
+
+.verso-input-icon {
+  position: absolute;
+  right: 2px;
+  bottom: 8px;
+  color: #8c827a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+}
+
+.verso-checkbox-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #4a5550;
+  margin: 18px 0 24px 0;
+}
+
+.verso-checkbox-label {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  cursor: pointer;
+  user-select: none;
+  font-weight: 500;
+}
+
+.verso-checkbox-custom {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  background-color: #064E3B;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+}
+
+.verso-link {
+  color: #1a2721;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: #b4833e;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  font-weight: 500;
+  transition: color 0.15s ease;
+}
+
+.verso-link:hover {
+  color: #b4833e;
+}
+
+/* Primary Pill Button */
+.verso-btn-pill {
+  width: 100%;
+  background: #064E3B;
+  color: #ffffff;
+  border: none;
+  border-radius: 9999px;
+  padding: 13px 26px;
+  font-size: 14.5px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 10px 22px -6px rgba(6, 78, 59, 0.45);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.verso-btn-pill:hover:not(:disabled) {
+  background: #04382a;
+  box-shadow: 0 14px 28px -8px rgba(6, 78, 59, 0.55);
+  transform: translateY(-1px);
+}
+
+.verso-btn-pill:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.verso-switch-footer {
+  margin-top: 22px;
+  font-size: 12.5px;
+  color: #6b635b;
+  text-align: left;
+}
+
+.verso-switch-link {
+  font-weight: 600;
+  color: #1a2721;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: #b4833e;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  margin-left: 5px;
+  font-size: 12.5px;
+  transition: color 0.15s ease;
+}
+
+.verso-switch-link:hover {
+  color: #064E3B;
+}
+
+/* Brand Section Details */
+.verso-brand-tag {
+  font-size: 11px;
+  letter-spacing: 3.5px;
+  font-weight: 700;
+  color: #d6af66;
+  text-transform: uppercase;
+  margin-bottom: 24px;
+}
+
+.verso-hero-heading {
+  font-family: var(--font-serif);
+  font-size: 42px;
+  line-height: 1.15;
+  color: #ffffff;
+  margin: 0 0 20px 0;
+  font-weight: 400;
+  letter-spacing: -0.5px;
+}
+
+.verso-hero-italic {
+  font-style: italic;
+  color: #e5ca93;
+  font-family: 'Merriweather', Georgia, serif;
+}
+
+.verso-hero-desc {
+  font-size: 13.5px;
+  line-height: 1.65;
+  color: #d1fae5;
+  opacity: 0.9;
+  max-width: 320px;
+}
+
+/* Responsive for Mobile */
+@media (max-width: 768px) {
+  .verso-auth-card {
+    flex-direction: column;
+    min-height: auto;
+    border-radius: 20px;
+  }
+  .verso-panel-form {
+    width: 100%;
+    transform: none !important;
+    padding: 36px 24px;
+    order: 2;
+  }
+  .verso-panel-brand {
+    width: 100%;
+    transform: none !important;
+    clip-path: none !important;
+    padding: 36px 24px;
+    order: 1;
+  }
+}
