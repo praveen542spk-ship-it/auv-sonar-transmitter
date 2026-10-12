@@ -64,7 +64,7 @@ export default function AdaptiveSonar({ onNavigateToInputs, onNavigateToPower })
       {/* Top Header Block */}
       <div className="page-header-block">
         <div className="page-header-badge-row">
-          <span className="badge-tag-blue">● PAGE 2: ADAPTIVE SONAR ANALYSIS</span>
+          <span className="badge-tag-blue">● ADAPTIVE SONAR ANALYSIS</span>
           <span className="badge-tag-green">SHARED STATE ACTIVE</span>
         </div>
         <h1 className="page-title">Adaptive Sonar Analysis &amp; Waveform Optimization</h1>

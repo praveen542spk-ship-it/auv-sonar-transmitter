@@ -5,13 +5,13 @@ export default function Navbar({ activePage, currentUser, onOpenProfile }) {
   const getSubsystemTitle = () => {
     switch (activePage) {
       case 'SonarInputConfig':
-        return 'Page 1 // Input & Configuration';
+        return 'Input & Configuration';
       case 'AdaptiveSonar':
-        return 'Page 2 // Adaptive Sonar Analysis';
+        return 'Adaptive Sonar Analysis';
       case 'PowerAnalysis':
-        return 'Page 3 // Power & Battery Optimization';
+        return 'Power & Battery Optimization';
       case 'Dashboard':
-        return 'Page 4 // Performance Dashboard';
+        return 'Performance Dashboard';
       case 'Profile':
         return 'AUV Mission Station & Fuel Gauge';
       default:

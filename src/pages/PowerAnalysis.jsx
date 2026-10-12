@@ -26,7 +26,7 @@ export default function PowerAnalysis({ onNavigateToAnalysis, onNavigateToDashbo
       {/* Top Header Block */}
       <div className="page-header-block">
         <div className="page-header-badge-row">
-          <span className="badge-tag-blue">● PAGE 3: POWER &amp; BATTERY OPTIMIZATION</span>
+          <span className="badge-tag-blue">● POWER &amp; BATTERY OPTIMIZATION</span>
           <span className="badge-tag-green">MEASURED EFFICIENCY &gt;82% CLASS D</span>
         </div>
         <h1 className="page-title">Low-Power Optimization &amp; Battery Analysis</h1>

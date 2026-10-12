@@ -3,10 +3,10 @@ import { Sliders, Activity, BatteryCharging, LayoutDashboard, User } from 'lucid
 
 export default function BottomNav({ activePage, onSelectPage }) {
   const navTabs = [
-    { id: 'SonarInputConfig', label: 'Page 1: Inputs', icon: Sliders },
-    { id: 'AdaptiveSonar', label: 'Page 2: Adaptive Analysis', icon: Activity },
-    { id: 'PowerAnalysis', label: 'Page 3: Power & Battery', icon: BatteryCharging },
-    { id: 'Dashboard', label: 'Page 4: Dashboard', icon: LayoutDashboard },
+    { id: 'SonarInputConfig', label: 'Inputs', icon: Sliders },
+    { id: 'AdaptiveSonar', label: 'Adaptive Sonar', icon: Activity },
+    { id: 'PowerAnalysis', label: 'Power & Battery', icon: BatteryCharging },
+    { id: 'Dashboard', label: 'Dashboard', icon: LayoutDashboard },
     { id: 'Profile', label: 'AUV Mission', icon: User },
   ];
 

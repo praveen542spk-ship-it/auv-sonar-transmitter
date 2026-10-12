@@ -114,7 +114,7 @@ export default function Dashboard({ onNavigateToInputs, onNavigateToAnalysis, on
       {/* Top Header Block */}
       <div className="page-header-block">
         <div className="page-header-badge-row">
-          <span className="badge-tag-blue">● PAGE 4: PERFORMANCE DASHBOARD</span>
+          <span className="badge-tag-blue">● PERFORMANCE DASHBOARD</span>
           <span className="badge-tag-green">LOW-POWER ADAPTIVE SDR SONAR FOR AUVS</span>
         </div>
         <h1 className="page-title">Sonar Performance Dashboard</h1>
