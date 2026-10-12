@@ -48,6 +48,68 @@ function saveOperator(operator) {
   }
 }
 
+const DISPOSABLE_OR_FAKE_DOMAINS = [
+  'test.com', 'fake.com', 'dummy.com', 'example.com', 'sample.com', 'xyz.com', 'abc.com', 'asdf.com',
+  'mailinator.com', 'tempmail.com', '10minutemail.com', 'throwawaymail.com', 'guerrillamail.com',
+  'yopmail.com', 'sharklasers.com', 'dispostable.com', 'trashmail.com'
+];
+
+const DUMMY_USERNAMES = [
+  'test', 'fake', 'dummy', 'asdf', 'sample', 'example', 'demo', '12345', 'temp', 'null', 'undefined'
+];
+
+async function verifyEmail(email) {
+  const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+  if (!email || !emailRegex.test(email)) {
+    return { valid: false, error: 'Invalid email address format! Please enter a valid email (e.g. name@domain.com).' };
+  }
+
+  const parts = email.toLowerCase().split('@');
+  if (parts.length !== 2) {
+    return { valid: false, error: 'Invalid email address format!' };
+  }
+
+  const [user, domain] = parts;
+
+  if (user.length < 3) {
+    return { valid: false, error: 'Invalid email! The username before "@" must be at least 3 characters.' };
+  }
+
+  if (DUMMY_USERNAMES.includes(user)) {
+    return { valid: false, error: `Invalid email! Generic dummy username "${user}@" is not allowed. Please enter your real email address.` };
+  }
+
+  if (DISPOSABLE_OR_FAKE_DOMAINS.includes(domain)) {
+    return { valid: false, error: `Invalid email! Disposable or dummy domain "@${domain}" is not allowed.` };
+  }
+
+  const tld = domain.split('.').pop();
+  if (!tld || tld.length < 2) {
+    return { valid: false, error: 'Invalid email! Top-level domain is invalid.' };
+  }
+
+  const trustedDomains = [
+    'gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'icloud.com', 'zoho.com', 
+    'proton.me', 'protonmail.com', 'aquasense.org', 'aquasense.navy'
+  ];
+
+  if (!trustedDomains.includes(domain)) {
+    try {
+      const res = await fetch(`https://dns.google/resolve?name=${domain}&type=MX`);
+      if (res.ok) {
+        const data = await res.json();
+        if (data.Status !== 0 || !data.Answer || data.Answer.length === 0) {
+          return { valid: false, error: `Invalid email! Domain "@${domain}" does not exist or has no active mail server.` };
+        }
+      }
+    } catch (e) {
+      // Allow through if DNS check fails due to local network restriction
+    }
+  }
+
+  return { valid: true };
+}
+
 export default function Login({ onLogin }) {
   const [mode, setMode] = useState('login'); // 'login' | 'register'
   const [operatorName, setOperatorName] = useState('');
@@ -69,22 +131,15 @@ export default function Login({ onLogin }) {
     setError('');
     setDbStatus(null);
 
-    const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
     const cleanedEmail = email.trim().toLowerCase();
     const cleanedPassword = password.trim();
 
-    // 1. Validate Email Presence & Format
+    // 1. Basic Presence Validation
     if (!cleanedEmail) {
       setError('Please enter your operator email address.');
       return;
     }
 
-    if (!emailRegex.test(cleanedEmail)) {
-      setError('Invalid email address format! Please enter a valid email (e.g. name@domain.com).');
-      return;
-    }
-
-    // 2. Validate Password Presence
     if (!cleanedPassword) {
       setError('Please enter your security passphrase.');
       return;
@@ -93,6 +148,14 @@ export default function Login({ onLogin }) {
     setLoading(true);
 
     try {
+      // 2. Comprehensive Email Verification (Format, Fake Users, Fake Domains, DNS MX)
+      const emailCheck = await verifyEmail(cleanedEmail);
+      if (!emailCheck.valid) {
+        setError(emailCheck.error);
+        setLoading(false);
+        return;
+      }
+
       if (mode === 'login') {
         // --- SIGN IN MODE ---
         const operators = getStoredOperators();
