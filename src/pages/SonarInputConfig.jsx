@@ -24,23 +24,24 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
 
   const validateInputs = () => {
     const errs = {};
-    if (config.targetDistanceM <= 0) errs.targetDistanceM = 'Must be > 0 m';
-    if (config.batteryCapacityAh <= 0) errs.batteryCapacityAh = 'Must be > 0 Ah';
-    if (config.batteryVoltageV <= 0) errs.batteryVoltageV = 'Must be > 0 V';
-    if (config.minFreqKhz <= 0) errs.minFreqKhz = 'Must be > 0 kHz';
-    if (config.maxFreqKhz <= 0) errs.maxFreqKhz = 'Must be > 0 kHz';
-    else if (config.maxFreqKhz <= config.minFreqKhz) errs.maxFreqKhz = 'Must be > Min Freq';
-    if (config.desiredRangeResM <= 0) errs.desiredRangeResM = 'Must be > 0 m';
-    if (config.desiredMissionHours <= 0) errs.desiredMissionHours = 'Must be > 0 h';
-    if (config.chirpBandwidthKhz <= 0) errs.chirpBandwidthKhz = 'Must be > 0 kHz';
-    if (config.pulseDurationMs <= 0) errs.pulseDurationMs = 'Must be > 0 ms';
-    if (config.transmitPowerLimitW <= 0) errs.transmitPowerLimitW = 'Must be > 0 W';
-    if (config.usableCapacityPct <= 0 || config.usableCapacityPct > 100) errs.usableCapacityPct = '1 to 100%';
-    if (config.amplifierEfficiencyPct <= 0 || config.amplifierEfficiencyPct > 100) errs.amplifierEfficiencyPct = '1 to 100%';
-    if (config.depthM < 0 || config.depthM > 1000) errs.depthM = '0 to 1000m';
-    if (config.turbidityNtu < 0 || config.turbidityNtu > 100) errs.turbidityNtu = '0 to 100 NTU';
-    if (config.tempC < 0 || config.tempC > 40) errs.tempC = '0 to 40°C';
-    if (config.salinityPsu < 0 || config.salinityPsu > 50) errs.salinityPsu = '0 to 50 PSU';
+    const num = (v) => (v === '' || v === null || v === undefined) ? NaN : Number(v);
+    if (isNaN(num(config.targetDistanceM)) || num(config.targetDistanceM) <= 0) errs.targetDistanceM = 'Must be > 0 m';
+    if (isNaN(num(config.batteryCapacityAh)) || num(config.batteryCapacityAh) <= 0) errs.batteryCapacityAh = 'Must be > 0 Ah';
+    if (isNaN(num(config.batteryVoltageV)) || num(config.batteryVoltageV) <= 0) errs.batteryVoltageV = 'Must be > 0 V';
+    if (isNaN(num(config.minFreqKhz)) || num(config.minFreqKhz) <= 0) errs.minFreqKhz = 'Must be > 0 kHz';
+    if (isNaN(num(config.maxFreqKhz)) || num(config.maxFreqKhz) <= 0) errs.maxFreqKhz = 'Must be > 0 kHz';
+    else if (num(config.maxFreqKhz) <= num(config.minFreqKhz)) errs.maxFreqKhz = 'Must be > Min Freq';
+    if (isNaN(num(config.desiredRangeResM)) || num(config.desiredRangeResM) <= 0) errs.desiredRangeResM = 'Must be > 0 m';
+    if (isNaN(num(config.desiredMissionHours)) || num(config.desiredMissionHours) <= 0) errs.desiredMissionHours = 'Must be > 0 h';
+    if (isNaN(num(config.chirpBandwidthKhz)) || num(config.chirpBandwidthKhz) <= 0) errs.chirpBandwidthKhz = 'Must be > 0 kHz';
+    if (isNaN(num(config.pulseDurationMs)) || num(config.pulseDurationMs) <= 0) errs.pulseDurationMs = 'Must be > 0 ms';
+    if (isNaN(num(config.transmitPowerLimitW)) || num(config.transmitPowerLimitW) <= 0) errs.transmitPowerLimitW = 'Must be > 0 W';
+    if (isNaN(num(config.usableCapacityPct)) || num(config.usableCapacityPct) <= 0 || num(config.usableCapacityPct) > 100) errs.usableCapacityPct = '1 to 100%';
+    if (isNaN(num(config.amplifierEfficiencyPct)) || num(config.amplifierEfficiencyPct) <= 0 || num(config.amplifierEfficiencyPct) > 100) errs.amplifierEfficiencyPct = '1 to 100%';
+    if (isNaN(num(config.depthM)) || num(config.depthM) < 0 || num(config.depthM) > 1000) errs.depthM = '0 to 1000m';
+    if (isNaN(num(config.turbidityNtu)) || num(config.turbidityNtu) < 0 || num(config.turbidityNtu) > 100) errs.turbidityNtu = '0 to 100 NTU';
+    if (isNaN(num(config.tempC)) || num(config.tempC) < 0 || num(config.tempC) > 40) errs.tempC = '0 to 40°C';
+    if (isNaN(num(config.salinityPsu)) || num(config.salinityPsu) < 0 || num(config.salinityPsu) > 50) errs.salinityPsu = '0 to 50 PSU';
     setErrors(errs);
     return Object.keys(errs).length === 0;
   };
@@ -153,8 +154,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.depthM ? '#dc2626' : 'var(--slate-text)' }}>Water Depth (m)</label>
                 <input
                   type="number"
-                  value={config.depthM}
-                  onChange={(e) => updateConfig('depthM', Number(e.target.value))}
+                  value={config.depthM === '' ? '' : config.depthM}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.depthM) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('depthM', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.depthM === '') updateConfig('depthM', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.depthM ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -166,8 +175,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.turbidityNtu ? '#dc2626' : 'var(--slate-text)' }}>Water Turbidity (NTU)</label>
                 <input
                   type="number"
-                  value={config.turbidityNtu}
-                  onChange={(e) => updateConfig('turbidityNtu', Number(e.target.value))}
+                  value={config.turbidityNtu === '' ? '' : config.turbidityNtu}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.turbidityNtu) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('turbidityNtu', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.turbidityNtu === '') updateConfig('turbidityNtu', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.turbidityNtu ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -179,8 +196,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.tempC ? '#dc2626' : 'var(--slate-text)' }}>Water Temperature (°C)</label>
                 <input
                   type="number"
-                  value={config.tempC}
-                  onChange={(e) => updateConfig('tempC', Number(e.target.value))}
+                  value={config.tempC === '' ? '' : config.tempC}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.tempC) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('tempC', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.tempC === '') updateConfig('tempC', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.tempC ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -192,8 +217,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.salinityPsu ? '#dc2626' : 'var(--slate-text)' }}>Water Salinity (PSU)</label>
                 <input
                   type="number"
-                  value={config.salinityPsu}
-                  onChange={(e) => updateConfig('salinityPsu', Number(e.target.value))}
+                  value={config.salinityPsu === '' ? '' : config.salinityPsu}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.salinityPsu) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('salinityPsu', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.salinityPsu === '') updateConfig('salinityPsu', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.salinityPsu ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -232,8 +265,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.minFreqKhz ? '#dc2626' : 'var(--slate-text)' }}>Min Frequency (kHz)</label>
                 <input
                   type="number"
-                  value={config.minFreqKhz}
-                  onChange={(e) => updateConfig('minFreqKhz', Number(e.target.value))}
+                  value={config.minFreqKhz === '' ? '' : config.minFreqKhz}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.minFreqKhz) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('minFreqKhz', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.minFreqKhz === '') updateConfig('minFreqKhz', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.minFreqKhz ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -245,8 +286,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.maxFreqKhz ? '#dc2626' : 'var(--slate-text)' }}>Max Frequency (kHz)</label>
                 <input
                   type="number"
-                  value={config.maxFreqKhz}
-                  onChange={(e) => updateConfig('maxFreqKhz', Number(e.target.value))}
+                  value={config.maxFreqKhz === '' ? '' : config.maxFreqKhz}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.maxFreqKhz) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('maxFreqKhz', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.maxFreqKhz === '') updateConfig('maxFreqKhz', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.maxFreqKhz ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -258,8 +307,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.targetDistanceM ? '#dc2626' : 'var(--slate-text)' }}>Target Distance (m)</label>
                 <input
                   type="number"
-                  value={config.targetDistanceM}
-                  onChange={(e) => updateConfig('targetDistanceM', Number(e.target.value))}
+                  value={config.targetDistanceM === '' ? '' : config.targetDistanceM}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.targetDistanceM) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('targetDistanceM', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.targetDistanceM === '') updateConfig('targetDistanceM', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.targetDistanceM ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -272,8 +329,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <input
                   type="number"
                   step="0.01"
-                value={config.desiredRangeResM}
-                  onChange={(e) => updateConfig('desiredRangeResM', Number(e.target.value))}
+                  value={config.desiredRangeResM === '' ? '' : config.desiredRangeResM}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.desiredRangeResM) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('desiredRangeResM', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.desiredRangeResM === '') updateConfig('desiredRangeResM', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.desiredRangeResM ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -285,8 +350,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.chirpBandwidthKhz ? '#dc2626' : 'var(--slate-text)' }}>Chirp Bandwidth (kHz)</label>
                 <input
                   type="number"
-                  value={config.chirpBandwidthKhz}
-                  onChange={(e) => updateConfig('chirpBandwidthKhz', Number(e.target.value))}
+                  value={config.chirpBandwidthKhz === '' ? '' : config.chirpBandwidthKhz}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.chirpBandwidthKhz) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('chirpBandwidthKhz', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.chirpBandwidthKhz === '') updateConfig('chirpBandwidthKhz', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.chirpBandwidthKhz ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -298,8 +371,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.pulseDurationMs ? '#dc2626' : 'var(--slate-text)' }}>Pulse Duration (ms)</label>
                 <input
                   type="number"
-                  value={config.pulseDurationMs}
-                  onChange={(e) => updateConfig('pulseDurationMs', Number(e.target.value))}
+                  value={config.pulseDurationMs === '' ? '' : config.pulseDurationMs}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.pulseDurationMs) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('pulseDurationMs', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.pulseDurationMs === '') updateConfig('pulseDurationMs', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.pulseDurationMs ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -323,8 +404,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.transmitPowerLimitW ? '#dc2626' : 'var(--slate-text)' }}>Transmit Power Limit (W)</label>
                 <input
                   type="number"
-                  value={config.transmitPowerLimitW}
-                  onChange={(e) => updateConfig('transmitPowerLimitW', Number(e.target.value))}
+                  value={config.transmitPowerLimitW === '' ? '' : config.transmitPowerLimitW}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.transmitPowerLimitW) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('transmitPowerLimitW', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.transmitPowerLimitW === '') updateConfig('transmitPowerLimitW', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.transmitPowerLimitW ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -336,8 +425,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.targetStrengthDb ? '#dc2626' : 'var(--slate-text)' }}>Target Strength (dB)</label>
                 <input
                   type="number"
-                  value={config.targetStrengthDb}
-                  onChange={(e) => updateConfig('targetStrengthDb', Number(e.target.value))}
+                  value={config.targetStrengthDb === '' ? '' : config.targetStrengthDb}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.targetStrengthDb) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('targetStrengthDb', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.targetStrengthDb === '') updateConfig('targetStrengthDb', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.targetStrengthDb ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -349,8 +446,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.receiverSensitivityDb ? '#dc2626' : 'var(--slate-text)' }}>Receiver Sensitivity (dB)</label>
                 <input
                   type="number"
-                  value={config.receiverSensitivityDb}
-                  onChange={(e) => updateConfig('receiverSensitivityDb', Number(e.target.value))}
+                  value={config.receiverSensitivityDb === '' ? '' : config.receiverSensitivityDb}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.receiverSensitivityDb) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('receiverSensitivityDb', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.receiverSensitivityDb === '') updateConfig('receiverSensitivityDb', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.receiverSensitivityDb ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -371,8 +476,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.batteryVoltageV ? '#dc2626' : 'var(--slate-text)' }}>Battery Voltage (V)</label>
                 <input
                   type="number"
-                  value={config.batteryVoltageV}
-                  onChange={(e) => updateConfig('batteryVoltageV', Number(e.target.value))}
+                  value={config.batteryVoltageV === '' ? '' : config.batteryVoltageV}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.batteryVoltageV) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('batteryVoltageV', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.batteryVoltageV === '') updateConfig('batteryVoltageV', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.batteryVoltageV ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -384,8 +497,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.batteryCapacityAh ? '#dc2626' : 'var(--slate-text)' }}>Battery Capacity (Ah)</label>
                 <input
                   type="number"
-                  value={config.batteryCapacityAh}
-                  onChange={(e) => updateConfig('batteryCapacityAh', Number(e.target.value))}
+                  value={config.batteryCapacityAh === '' ? '' : config.batteryCapacityAh}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.batteryCapacityAh) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('batteryCapacityAh', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.batteryCapacityAh === '') updateConfig('batteryCapacityAh', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.batteryCapacityAh ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -397,8 +518,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.usableCapacityPct ? '#dc2626' : 'var(--slate-text)' }}>Usable Capacity (%)</label>
                 <input
                   type="number"
-                  value={config.usableCapacityPct}
-                  onChange={(e) => updateConfig('usableCapacityPct', Number(e.target.value))}
+                  value={config.usableCapacityPct === '' ? '' : config.usableCapacityPct}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.usableCapacityPct) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('usableCapacityPct', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.usableCapacityPct === '') updateConfig('usableCapacityPct', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.usableCapacityPct ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -410,8 +539,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.desiredMissionHours ? '#dc2626' : 'var(--slate-text)' }}>Mission Duration (h)</label>
                 <input
                   type="number"
-                  value={config.desiredMissionHours}
-                  onChange={(e) => updateConfig('desiredMissionHours', Number(e.target.value))}
+                  value={config.desiredMissionHours === '' ? '' : config.desiredMissionHours}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.desiredMissionHours) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('desiredMissionHours', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.desiredMissionHours === '') updateConfig('desiredMissionHours', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.desiredMissionHours ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -423,8 +560,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.amplifierEfficiencyPct ? '#dc2626' : 'var(--slate-text)' }}>Amplifier Efficiency (%)</label>
                 <input
                   type="number"
-                  value={config.amplifierEfficiencyPct}
-                  onChange={(e) => updateConfig('amplifierEfficiencyPct', Number(e.target.value))}
+                  value={config.amplifierEfficiencyPct === '' ? '' : config.amplifierEfficiencyPct}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.amplifierEfficiencyPct) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('amplifierEfficiencyPct', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.amplifierEfficiencyPct === '') updateConfig('amplifierEfficiencyPct', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.amplifierEfficiencyPct ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -436,8 +581,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.electronicsPowerW ? '#dc2626' : 'var(--slate-text)' }}>Electronics &amp; Sensor Power (W)</label>
                 <input
                   type="number"
-                  value={config.electronicsPowerW}
-                  onChange={(e) => updateConfig('electronicsPowerW', Number(e.target.value))}
+                  value={config.electronicsPowerW === '' ? '' : config.electronicsPowerW}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.electronicsPowerW) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('electronicsPowerW', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.electronicsPowerW === '') updateConfig('electronicsPowerW', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.electronicsPowerW ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>
@@ -449,8 +602,16 @@ export default function SonarInputConfig({ onNavigateToAnalysis }) {
                 <label style={{ fontSize: 10.5, color: errors.dutyCyclePct ? '#dc2626' : 'var(--slate-text)' }}>Duty Cycle (%)</label>
                 <input
                   type="number"
-                  value={config.dutyCyclePct}
-                  onChange={(e) => updateConfig('dutyCyclePct', Number(e.target.value))}
+                  value={config.dutyCyclePct === '' ? '' : config.dutyCyclePct}
+                  placeholder="0"
+                  onFocus={(e) => { if (String(config.dutyCyclePct) === '0') e.target.select(); }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    updateConfig('dutyCyclePct', val === '' ? '' : Number(val));
+                  }}
+                  onBlur={() => {
+                    if (config.dutyCyclePct === '') updateConfig('dutyCyclePct', 0);
+                  }}
                   style={{ width: 90, padding: '5px 8px', borderRadius: 6, border: `1px solid ${errors.dutyCyclePct ? '#ef4444' : 'var(--border-color)'}`, fontSize: 11, textAlign: 'right' }}
                 />
               </div>

@@ -187,31 +187,52 @@ export function SonarProvider({ children }) {
       return ZERO_RESULTS;
     }
 
+    const depthM = Number(config.depthM) || 0;
+    const turbidityNtu = Number(config.turbidityNtu) || 0;
+    const tempC = Number(config.tempC) || 0;
+    const salinityPsu = Number(config.salinityPsu) || 0;
+    const minFreqKhz = Number(config.minFreqKhz) || 0;
+    const maxFreqKhz = Number(config.maxFreqKhz) || 0;
+    const targetDistanceM = Number(config.targetDistanceM) || 0;
+    const desiredRangeResM = Number(config.desiredRangeResM) || 0;
+    const chirpBandwidthKhz = Number(config.chirpBandwidthKhz) || 0;
+    const pulseDurationMs = Number(config.pulseDurationMs) || 0;
+    const transmitPowerLimitW = Number(config.transmitPowerLimitW) || 0;
+    const targetStrengthDb = Number(config.targetStrengthDb) || 0;
+    const receiverSensitivityDb = Number(config.receiverSensitivityDb) || 0;
+    const batteryVoltageV = Number(config.batteryVoltageV) || 0;
+    const batteryCapacityAh = Number(config.batteryCapacityAh) || 0;
+    const usableCapacityPct = Number(config.usableCapacityPct) || 0;
+    const desiredMissionHours = Number(config.desiredMissionHours) || 0;
+    const amplifierEfficiencyPct = Number(config.amplifierEfficiencyPct) || 0;
+    const electronicsPowerW = Number(config.electronicsPowerW) || 0;
+    const dutyCyclePct = Number(config.dutyCyclePct) || 0;
+
     // 1. Environmental sound speed
-    const calculatedSoundSpeed = calculateSoundSpeed(config.tempC, config.salinityPsu, config.depthM);
+    const calculatedSoundSpeed = calculateSoundSpeed(tempC, salinityPsu, depthM);
     const effectiveSoundSpeed = (config.soundSpeedManual !== null && !isNaN(config.soundSpeedManual) && config.soundSpeedManual > 1000) 
       ? Number(config.soundSpeedManual) 
       : calculatedSoundSpeed;
 
     // 2. Frequency Range and Bandwidth constraints
-    const minF = Math.max(1, Math.min(config.minFreqKhz, config.maxFreqKhz > 1 ? config.maxFreqKhz - 1 : 1));
-    const maxF = Math.max(minF + 1, config.maxFreqKhz);
+    const minF = Math.max(1, Math.min(minFreqKhz, maxFreqKhz > 1 ? maxFreqKhz - 1 : 1));
+    const maxF = Math.max(minF + 1, maxFreqKhz);
     const maxAvailableBandwidth = Math.max(0, maxF - minF);
-    const effectiveBandwidthKhz = Math.min(config.chirpBandwidthKhz, maxAvailableBandwidth);
+    const effectiveBandwidthKhz = Math.min(chirpBandwidthKhz, maxAvailableBandwidth);
 
     // 3. Recommended / Optimal Operating Frequency
-    const rangeFactor = Math.min(1, Math.max(0, (config.targetDistanceM - 10) / 490));
-    const turbFactor = Math.min(1, Math.max(0, config.turbidityNtu / 100));
+    const rangeFactor = Math.min(1, Math.max(0, (targetDistanceM - 10) / 490));
+    const turbFactor = Math.min(1, Math.max(0, turbidityNtu / 100));
     const penalty = 0.60 * rangeFactor + 0.40 * turbFactor;
     const recommendedFreqKhz = Math.round(maxF - penalty * (maxF - minF));
 
     // 4. Acoustic Attenuation alpha (dB/km and dB/m)
     const calculatedAlpha_dB_m = calculateAbsorption(
       recommendedFreqKhz, 
-      config.tempC, 
-      config.salinityPsu, 
-      config.depthM, 
-      config.turbidityNtu
+      tempC, 
+      salinityPsu, 
+      depthM, 
+      turbidityNtu
     );
     const calculatedAlpha_dB_km = calculatedAlpha_dB_m * 1000.0;
     const effectiveAlpha_dB_km = (config.attenuationManual !== null && !isNaN(config.attenuationManual) && config.attenuationManual > 0)
@@ -221,56 +242,55 @@ export function SonarProvider({ children }) {
 
     // 5. Range Resolution: Delta_R = c / (2 * Bandwidth_Hz)
     const bandwidthHz = effectiveBandwidthKhz * 1000;
-    const requiredBandwidthForDesiredResHz = effectiveSoundSpeed / (2 * Math.max(0.001, config.desiredRangeResM));
+    const requiredBandwidthForDesiredResHz = effectiveSoundSpeed / (2 * Math.max(0.001, desiredRangeResM));
     const requiredBandwidthKhz = requiredBandwidthForDesiredResHz / 1000;
     const achievableRangeResolutionM = effectiveSoundSpeed / (2 * Math.max(1000, bandwidthHz));
-    const satisfiesResolution = config.desiredRangeResM > 0 && achievableRangeResolutionM <= config.desiredRangeResM * 1.05;
+    const satisfiesResolution = desiredRangeResM > 0 && achievableRangeResolutionM <= desiredRangeResM * 1.05;
 
     // 6. Transmission Loss: 20*log10(R) + alpha * R
-    const r = Math.max(1, config.targetDistanceM);
+    const r = Math.max(1, targetDistanceM);
     const oneWayTL = 20 * Math.log10(r) + (effectiveAlpha_dB_m * r);
     const twoWayTL = 2 * oneWayTL;
 
     // 7. Transmit Power Estimation & Sonar Equation
-    const ampEfficiency = Math.max(0.1, config.amplifierEfficiencyPct > 0 ? config.amplifierEfficiencyPct / 100 : 0.82);
+    const ampEfficiency = Math.max(0.1, amplifierEfficiencyPct > 0 ? amplifierEfficiencyPct / 100 : 0.82);
     const targetSNR = 20.0;
     const ambientNoiseNL = 45.0;
-    const tauSec = Math.max(0.001, config.pulseDurationMs / 1000);
+    const tauSec = Math.max(0.001, pulseDurationMs / 1000);
     const processingGain = 10 * Math.log10(Math.max(1, bandwidthHz * tauSec));
-    const requiredSL = targetSNR + ambientNoiseNL - processingGain + twoWayTL - config.targetStrengthDb;
+    const requiredSL = targetSNR + ambientNoiseNL - processingGain + twoWayTL - targetStrengthDb;
     const requiredPAcoustic = Math.pow(10, (requiredSL - 185.8) / 10);
     const requiredTransmitterPowerW = Math.max(1, Math.min(250, requiredPAcoustic / 0.5));
-    const isPowerWithinLimit = config.transmitPowerLimitW > 0 && requiredTransmitterPowerW <= config.transmitPowerLimitW;
+    const isPowerWithinLimit = transmitPowerLimitW > 0 && requiredTransmitterPowerW <= transmitPowerLimitW;
 
-    const activeTransmitPowerW = config.transmitPowerLimitW > 0 
-      ? Math.min(config.transmitPowerLimitW, requiredTransmitterPowerW)
+    const activeTransmitPowerW = transmitPowerLimitW > 0 
+      ? Math.min(transmitPowerLimitW, requiredTransmitterPowerW)
       : requiredTransmitterPowerW;
 
     // 8. Battery Energy Calculation
-    const nominalBatteryEnergyWh = config.batteryVoltageV * config.batteryCapacityAh;
-    const usableBatteryEnergyWh = nominalBatteryEnergyWh * (config.usableCapacityPct / 100);
+    const nominalBatteryEnergyWh = batteryVoltageV * batteryCapacityAh;
+    const usableBatteryEnergyWh = nominalBatteryEnergyWh * (usableCapacityPct / 100);
 
     // 9. Power Consumption Model
-    const effectiveDutyCycle = config.transmissionMode === 'Continuous' ? 1.0 : (config.dutyCyclePct / 100);
+    const effectiveDutyCycle = config.transmissionMode === 'Continuous' ? 1.0 : (dutyCyclePct / 100);
     const txElectricalPowerDuringPulseW = activeTransmitPowerW / ampEfficiency;
     const averageTransmitPowerW = txElectricalPowerDuringPulseW * effectiveDutyCycle;
     const amplifierLossesW = (txElectricalPowerDuringPulseW - activeTransmitPowerW) * effectiveDutyCycle;
-    const electronicsPowerW = config.electronicsPowerW;
     const totalAverageSystemPowerW = averageTransmitPowerW + electronicsPowerW;
 
     // Battery Runtime & Mission Energy
     const estimatedRuntimeHours = totalAverageSystemPowerW > 0 ? (usableBatteryEnergyWh / totalAverageSystemPowerW) : 0;
     const energyConsumedPerHourWh = totalAverageSystemPowerW;
-    const estimatedMissionEnergyWh = totalAverageSystemPowerW * config.desiredMissionHours;
+    const estimatedMissionEnergyWh = totalAverageSystemPowerW * desiredMissionHours;
     const remainingBatteryEnergyWh = Math.max(0, usableBatteryEnergyWh - estimatedMissionEnergyWh);
-    const meetsMissionDuration = config.desiredMissionHours > 0 && estimatedRuntimeHours >= config.desiredMissionHours;
+    const meetsMissionDuration = desiredMissionHours > 0 && estimatedRuntimeHours >= desiredMissionHours;
 
     // 10. Fixed Baseline Comparison (80W baseline or configured max)
-    const baselineTxPowerW = Math.max(50, config.transmitPowerLimitW || 80);
+    const baselineTxPowerW = Math.max(50, transmitPowerLimitW || 80);
     const baselineTxElectricalW = baselineTxPowerW / ampEfficiency;
     const baselineAvgPowerW = (baselineTxElectricalW * (config.transmissionMode === 'Continuous' ? 1.0 : 0.25)) + electronicsPowerW;
     const baselineRuntimeHours = baselineAvgPowerW > 0 ? (usableBatteryEnergyWh / baselineAvgPowerW) : 0;
-    const baselineMissionEnergyWh = baselineAvgPowerW * config.desiredMissionHours;
+    const baselineMissionEnergyWh = baselineAvgPowerW * desiredMissionHours;
     const powerSavingPct = baselineAvgPowerW > 0 ? Math.max(0, ((baselineAvgPowerW - totalAverageSystemPowerW) / baselineAvgPowerW) * 100) : 0;
     const energySavingPct = baselineMissionEnergyWh > 0 ? Math.max(0, ((baselineMissionEnergyWh - estimatedMissionEnergyWh) / baselineMissionEnergyWh) * 100) : 0;
 
@@ -280,19 +300,19 @@ export function SonarProvider({ children }) {
 
     if (!isPowerWithinLimit && !meetsMissionDuration) {
       feasibilityStatus = 'Not feasible under current constraints';
-      feasibilityExplanation = `Required power (${requiredTransmitterPowerW.toFixed(1)}W) exceeds the configured limit (${config.transmitPowerLimitW}W) and battery runtime (${estimatedRuntimeHours.toFixed(1)}h) is less than the desired ${config.desiredMissionHours}h mission.`;
+      feasibilityExplanation = `Required power (${requiredTransmitterPowerW.toFixed(1)}W) exceeds the configured limit (${transmitPowerLimitW}W) and battery runtime (${estimatedRuntimeHours.toFixed(1)}h) is less than the desired ${desiredMissionHours}h mission.`;
     } else if (!isPowerWithinLimit) {
       feasibilityStatus = 'Feasible with recommended adjustments';
-      feasibilityExplanation = `Estimated required transmit power (${requiredTransmitterPowerW.toFixed(1)}W) exceeds hardware limit (${config.transmitPowerLimitW}W). Recommend shortening range or increasing power limit.`;
+      feasibilityExplanation = `Estimated required transmit power (${requiredTransmitterPowerW.toFixed(1)}W) exceeds hardware limit (${transmitPowerLimitW}W). Recommend shortening range or increasing power limit.`;
     } else if (!meetsMissionDuration) {
       feasibilityStatus = 'Feasible with recommended adjustments';
-      feasibilityExplanation = `Estimated runtime (${estimatedRuntimeHours.toFixed(1)} hrs) is less than the requested ${config.desiredMissionHours} hrs mission. Recommend reducing duty cycle or upgrading battery capacity.`;
+      feasibilityExplanation = `Estimated runtime (${estimatedRuntimeHours.toFixed(1)} hrs) is less than the requested ${desiredMissionHours} hrs mission. Recommend reducing duty cycle or upgrading battery capacity.`;
     } else if (!satisfiesResolution) {
       feasibilityStatus = 'Feasible with recommended adjustments';
-      feasibilityExplanation = `Achievable resolution (${achievableRangeResolutionM.toFixed(3)}m) does not meet desired resolution (${config.desiredRangeResM}m) due to bandwidth limit (${effectiveBandwidthKhz} kHz).`;
+      feasibilityExplanation = `Achievable resolution (${achievableRangeResolutionM.toFixed(3)}m) does not meet desired resolution (${desiredRangeResM}m) due to bandwidth limit (${effectiveBandwidthKhz} kHz).`;
     }
 
-    const candidateFrequencies = evaluateCandidateFrequencies(config, effectiveSoundSpeed);
+    const candidateFrequencies = evaluateCandidateFrequencies(config, effectiveSoundSpeed);(config, effectiveSoundSpeed);
 
     return {
       hasCalculated: true,
