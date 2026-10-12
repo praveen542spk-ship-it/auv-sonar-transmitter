@@ -1001,6 +1001,74 @@ input::placeholder {
   color: #94a3b8;
 }
 
+/* Chrome, Edge, Safari autofill override */
+input:-webkit-autofill,
+input:-webkit-autofill:hover, 
+input:-webkit-autofill:focus, 
+input:-webkit-autofill:active {
+  -webkit-box-shadow: 0 0 0 1000px #ffffff inset !important;
+  box-shadow: 0 0 0 1000px #ffffff inset !important;
+  -webkit-text-fill-color: #0f172a !important;
+  caret-color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+  transition: background-color 5000s ease-in-out 0s;
+}
+
+/* Dedicated Login Input & Select Classes */
+.login-input {
+  width: 100%;
+  padding: 10px 14px 10px 38px;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1 !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.login-input:hover {
+  border-color: #94a3b8 !important;
+}
+
+.login-input:focus {
+  border-color: #085464 !important;
+  box-shadow: 0 0 0 3px rgba(8, 84, 100, 0.15) !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+}
+
+.login-input::placeholder {
+  color: #94a3b8 !important;
+  font-weight: 400;
+  opacity: 0.9;
+}
+
+.login-select {
+  width: 100%;
+  padding: 10px 14px;
+  border-radius: 8px;
+  border: 1.5px solid #cbd5e1 !important;
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  font-size: 13px;
+  font-weight: 500;
+  outline: none;
+  box-sizing: border-box;
+  transition: all 0.2s ease;
+}
+
+.login-select:hover {
+  border-color: #94a3b8 !important;
+}
+
+.login-select:focus {
+  border-color: #085464 !important;
+  box-shadow: 0 0 0 3px rgba(8, 84, 100, 0.15) !important;
+}
+
 /* Remove up/down spinners from number inputs for clean normal typing */
 input[type="number"]::-webkit-outer-spin-button,
 input[type="number"]::-webkit-inner-spin-button {

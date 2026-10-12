@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { Lock, Mail, ShieldCheck, ArrowRight, User, Database, CheckCircle2 } from 'lucide-react';
+import { Lock, Mail, ShieldCheck, ArrowRight, User, Database, CheckCircle2, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '../supabaseClient';
 
 export default function Login({ onLogin }) {
   const [operatorName, setOperatorName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [role, setRole] = useState('Sonar Payload Specialist');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -113,7 +114,7 @@ export default function Login({ onLogin }) {
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           {/* Operator Name */}
           <div>
-            <label style={{ fontSize: 10.5, fontFamily: 'monospace', fontWeight: 700, color: 'var(--slate-muted)', display: 'block', marginBottom: 5 }}>
+            <label style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
               OPERATOR NAME
             </label>
             <div style={{ position: 'relative' }}>
@@ -122,16 +123,16 @@ export default function Login({ onLogin }) {
                 value={operatorName}
                 onChange={(e) => setOperatorName(e.target.value)}
                 required
-                style={{ width: '100%', padding: '9px 12px 9px 36px', borderRadius: 8, border: '1px solid var(--border-color)', fontSize: 12 }}
+                className="login-input"
                 placeholder="e.g. Praveen Kumar"
               />
-              <User size={15} color="var(--slate-muted)" style={{ position: 'absolute', left: 12, top: 11 }} />
+              <User size={16} color="#085464" style={{ position: 'absolute', left: 12, top: 12 }} />
             </div>
           </div>
 
           {/* Operator Email */}
           <div>
-            <label style={{ fontSize: 10.5, fontFamily: 'monospace', fontWeight: 700, color: 'var(--slate-muted)', display: 'block', marginBottom: 5 }}>
+            <label style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
               OPERATOR EMAIL / ID
             </label>
             <div style={{ position: 'relative' }}>
@@ -140,40 +141,61 @@ export default function Login({ onLogin }) {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                style={{ width: '100%', padding: '9px 12px 9px 36px', borderRadius: 8, border: '1px solid var(--border-color)', fontSize: 12 }}
+                className="login-input"
                 placeholder="e.g. praveen@aquasense.org"
               />
-              <Mail size={15} color="var(--slate-muted)" style={{ position: 'absolute', left: 12, top: 11 }} />
+              <Mail size={16} color="#085464" style={{ position: 'absolute', left: 12, top: 12 }} />
             </div>
           </div>
 
           {/* Security Passphrase */}
           <div>
-            <label style={{ fontSize: 10.5, fontFamily: 'monospace', fontWeight: 700, color: 'var(--slate-muted)', display: 'block', marginBottom: 5 }}>
+            <label style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
               SECURITY PASSPHRASE
             </label>
             <div style={{ position: 'relative' }}>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                style={{ width: '100%', padding: '9px 12px 9px 36px', borderRadius: 8, border: '1px solid var(--border-color)', fontSize: 12 }}
+                className="login-input"
+                style={{ paddingRight: 40 }}
                 placeholder="Enter security passphrase"
               />
-              <Lock size={15} color="var(--slate-muted)" style={{ position: 'absolute', left: 12, top: 11 }} />
+              <Lock size={16} color="#085464" style={{ position: 'absolute', left: 12, top: 12 }} />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: 10,
+                  top: 9,
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  padding: 4,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#64748b'
+                }}
+                title={showPassword ? 'Hide passphrase' : 'Show passphrase'}
+              >
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
             </div>
           </div>
 
           {/* Operational Role */}
           <div>
-            <label style={{ fontSize: 10.5, fontFamily: 'monospace', fontWeight: 700, color: 'var(--slate-muted)', display: 'block', marginBottom: 5 }}>
+            <label style={{ fontSize: 11, fontFamily: 'var(--font-mono)', fontWeight: 700, color: '#334155', display: 'block', marginBottom: 6 }}>
               MISSION ROLE
             </label>
             <select
               value={role}
               onChange={(e) => setRole(e.target.value)}
-              style={{ width: '100%', padding: '9px 12px', borderRadius: 8, border: '1px solid var(--border-color)', fontSize: 12, background: '#ffffff' }}
+              className="login-select"
             >
               <option value="Sonar Payload Specialist">Sonar Payload Specialist</option>
               <option value="AUV Systems Engineer">AUV Systems Engineer</option>
