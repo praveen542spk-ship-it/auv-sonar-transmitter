@@ -103,9 +103,11 @@ export default function App() {
           onOpenProfile={() => setActivePage('Profile')}
         />
 
-        <Suspense fallback={<div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#064E3B' }}>Loading Telemetry Deck...</div>}>
-          {renderCurrentPage()}
-        </Suspense>
+        <main id="main-content" role="main" className="aquasense-main-content">
+          <Suspense fallback={<div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#064E3B' }}>Loading Telemetry Deck...</div>}>
+            {renderCurrentPage()}
+          </Suspense>
+        </main>
 
         <BottomNav
           activePage={activePage}

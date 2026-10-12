@@ -1177,19 +1177,21 @@ input[type="number"] {
 .verso-input-label {
   display: block;
   font-size: 11.5px;
-  font-weight: 500;
-  color: #8c827a;
+  font-weight: 600;
+  color: #4a433c;
   margin-bottom: 3px;
   letter-spacing: 0.2px;
 }
 
 .verso-input {
   width: 100%;
+  min-height: 44px;
   background: transparent !important;
   border: none !important;
   border-bottom: 1.5px solid #dcd4c7 !important;
   border-radius: 0 !important;
-  padding: 8px 36px 8px 0;
+  padding: 10px 44px 10px 0;
+  box-sizing: border-box;
   font-size: 14px;
   color: #1a2721 !important;
   font-weight: 500;
@@ -1204,16 +1206,20 @@ input[type="number"] {
 }
 
 .verso-input::placeholder {
-  color: #a39c91 !important;
+  color: #605a54 !important;
   font-weight: 400;
   font-size: 13.5px;
 }
 
 .verso-input-icon {
   position: absolute;
-  right: 2px;
-  bottom: 8px;
-  color: #8c827a;
+  right: 0px;
+  bottom: 0px;
+  width: 44px;
+  height: 44px;
+  min-width: 44px;
+  min-height: 44px;
+  color: #4a433c;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1221,6 +1227,17 @@ input[type="number"] {
   background: none;
   border: none;
   padding: 0;
+  border-radius: 6px;
+  transition: color 0.15s ease, background-color 0.15s ease;
+}
+
+.verso-input-icon:hover {
+  color: #064E3B;
+}
+
+.verso-input-icon:focus-visible {
+  outline: 2px solid #064E3B;
+  outline-offset: 2px;
 }
 
 .verso-checkbox-row {
@@ -1228,13 +1245,14 @@ input[type="number"] {
   align-items: center;
   justify-content: space-between;
   font-size: 12px;
-  color: #4a5550;
+  color: #37413d;
   margin: 18px 0 24px 0;
 }
 
 .verso-checkbox-label {
-  display: flex;
+  display: inline-flex;
   align-items: center;
+  min-height: 44px;
   gap: 7px;
   cursor: pointer;
   user-select: none;
@@ -1261,7 +1279,10 @@ input[type="number"] {
   cursor: pointer;
   background: none;
   border: none;
-  padding: 0;
+  padding: 8px 4px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
   font-weight: 500;
   transition: color 0.15s ease;
 }
@@ -1273,6 +1294,7 @@ input[type="number"] {
 /* Primary Pill Button */
 .verso-btn-pill {
   width: 100%;
+  min-height: 48px;
   background: #064E3B;
   color: #ffffff;
   border: none;
@@ -1303,7 +1325,7 @@ input[type="number"] {
 .verso-switch-footer {
   margin-top: 22px;
   font-size: 12.5px;
-  color: #6b635b;
+  color: #473f37;
   text-align: left;
 }
 
@@ -1316,8 +1338,11 @@ input[type="number"] {
   cursor: pointer;
   background: none;
   border: none;
-  padding: 0;
-  margin-left: 5px;
+  padding: 8px 6px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  margin-left: 2px;
   font-size: 12.5px;
   transition: color 0.15s ease;
 }

@@ -275,7 +275,7 @@ export default function Login({ onLogin }) {
   };
 
   return (
-    <div className="verso-auth-viewport">
+    <main className="verso-auth-viewport" id="main-content" role="main">
       <div className={`verso-auth-card mode-${mode}`}>
         
         {/* Form Panel (Slides left/right smoothly) */}
@@ -303,8 +303,9 @@ export default function Login({ onLogin }) {
             {/* Full Name (in Register mode) */}
             {mode === 'register' && (
               <div className="verso-input-group">
-                <label className="verso-input-label">Full name</label>
+                <label className="verso-input-label" htmlFor="register-fullname">Full name</label>
                 <input
+                  id="register-fullname"
                   type="text"
                   value={operatorName}
                   onChange={(e) => setOperatorName(e.target.value)}
@@ -312,18 +313,19 @@ export default function Login({ onLogin }) {
                   className="verso-input"
                   placeholder="e.g. Praveen Kumar"
                 />
-                <span className="verso-input-icon">
-                  <User size={17} />
+                <span className="verso-input-icon" aria-hidden="true">
+                  <User size={18} />
                 </span>
               </div>
             )}
 
             {/* Email Address */}
             <div className="verso-input-group">
-              <label className="verso-input-label">
+              <label className="verso-input-label" htmlFor="auth-email">
                 {mode === 'login' ? 'Username or email' : 'Email address'}
               </label>
               <input
+                id="auth-email"
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -331,15 +333,16 @@ export default function Login({ onLogin }) {
                 className="verso-input"
                 placeholder={mode === 'login' ? 'Enter your email' : 'yourname@aquasense.org'}
               />
-              <span className="verso-input-icon">
-                {mode === 'login' ? <User size={17} /> : <Mail size={17} />}
+              <span className="verso-input-icon" aria-hidden="true">
+                {mode === 'login' ? <User size={18} /> : <Mail size={18} />}
               </span>
             </div>
 
             {/* Password */}
             <div className="verso-input-group" style={{ marginBottom: mode === 'register' ? 12 : 20 }}>
-              <label className="verso-input-label">Password</label>
+              <label className="verso-input-label" htmlFor="auth-password">Password</label>
               <input
+                id="auth-password"
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -352,8 +355,9 @@ export default function Login({ onLogin }) {
                 onClick={() => setShowPassword(!showPassword)}
                 className="verso-input-icon"
                 title={showPassword ? 'Hide password' : 'Show password'}
+                aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
-                {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
 
@@ -364,12 +368,13 @@ export default function Login({ onLogin }) {
                   <div style={{ flex: 1, height: 2, background: password.length >= 6 ? '#064E3B' : '#dcd4c7', borderRadius: 2 }}></div>
                   <div style={{ flex: 1, height: 2, background: password.length >= 8 ? '#064E3B' : '#dcd4c7', borderRadius: 2 }}></div>
                   <div style={{ flex: 1, height: 2, background: password.length >= 10 ? '#064E3B' : '#dcd4c7', borderRadius: 2 }}></div>
-                  <span style={{ fontSize: 11, color: '#8c827a', marginLeft: 4, whiteSpace: 'nowrap' }}>Use 6 characters or more.</span>
+                  <span style={{ fontSize: 11, color: '#4a433c', marginLeft: 4, whiteSpace: 'nowrap' }}>Use 6 characters or more.</span>
                 </div>
 
                 <div className="verso-input-group" style={{ marginBottom: 0 }}>
-                  <label className="verso-input-label">Mission role</label>
+                  <label className="verso-input-label" htmlFor="register-role">Mission role</label>
                   <select
+                    id="register-role"
                     value={role}
                     onChange={(e) => setRole(e.target.value)}
                     className="verso-input"
@@ -387,8 +392,16 @@ export default function Login({ onLogin }) {
             {/* Keep Signed In & Forgot Password (in Login mode) */}
             {mode === 'login' && (
               <div className="verso-checkbox-row">
-                <label className="verso-checkbox-label" onClick={() => setKeepSignedIn(!keepSignedIn)}>
-                  <div className="verso-checkbox-custom" style={{ background: keepSignedIn ? '#064E3B' : '#dcd4c7' }}>
+                <label className="verso-checkbox-label" htmlFor="keep-signed-in" onClick={() => setKeepSignedIn(!keepSignedIn)}>
+                  <input
+                    type="checkbox"
+                    id="keep-signed-in"
+                    checked={keepSignedIn}
+                    onChange={() => {}}
+                    aria-label="Keep me signed in"
+                    style={{ position: 'absolute', opacity: 0, pointerEvents: 'none' }}
+                  />
+                  <div className="verso-checkbox-custom" style={{ background: keepSignedIn ? '#064E3B' : '#dcd4c7' }} aria-hidden="true">
                     {keepSignedIn && <Check size={12} strokeWidth={3} />}
                   </div>
                   <span>Keep me signed in</span>
@@ -473,6 +486,6 @@ export default function Login({ onLogin }) {
         </div>
 
       </div>
-    </div>
+    </main>
   );
 }
