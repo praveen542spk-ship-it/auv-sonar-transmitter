@@ -12,11 +12,6 @@ export default function BottomNav({ activePage, onSelectPage }) {
 
   return (
     <div className="aquasense-dock-container">
-      <div className="auv-status-ticker">
-        <span>● AUV SDR PAYLOAD: REAL-TIME ADAPTIVE (100–500 kHz)</span>
-        <span>CLASS D &gt;82% | 48V 10Ah</span>
-      </div>
-
       <nav className="dock-tabs-grid" aria-label="Main Dock Navigation" style={{ gridTemplateColumns: 'repeat(5, 1fr)' }}>
         {navTabs.map((tab) => {
           const Icon = tab.icon;

@@ -480,26 +480,7 @@ export default function Login({ onLogin }) {
             </div>
           )}
 
-          {/* Demo account helper in Sign In mode */}
-          {mode === 'login' && (
-            <div style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: 8, padding: '9px 12px', fontSize: 11, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ lineHeight: 1.4 }}>
-                <span style={{ color: '#64748b' }}>Demo Account: </span>
-                <span style={{ fontWeight: 600, color: '#0f172a' }}>praveen@aquasense.org</span>
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  setEmail('praveen@aquasense.org');
-                  setPassword('Passphrase@123');
-                  setError('');
-                }}
-                style={{ background: '#e0f2fe', color: '#0284c7', border: '1px solid #bae6fd', borderRadius: 6, padding: '4px 10px', fontSize: 10.5, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }}
-              >
-                Fill Demo
-              </button>
-            </div>
-          )}
+
 
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: 10.5, color: 'var(--slate-muted)' }}>
             <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
